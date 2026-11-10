@@ -1,0 +1,3 @@
+iniciando backup
+849 arquivos copiados
+exit=0 Tue Nov 10 07:01:04 -03 2026

@@ -1,0 +1,3 @@
+iniciando backup
+925 arquivos copiados
+exit=0 Wed Oct 14 07:00:57 -03 2026

@@ -1,0 +1,17 @@
+nome = "Revisor de faturas"
+area = "Agentes de IA"
+o_que = "Confere se cada fatura bate com o pedido e separa as que precisam de pessoa."
+fonte = "sql"
+volume_nome = "faturas revisadas por dia"
+acao_falha = "Veja a fila de faturas no sistema."
+[rotulos]
+volume = "revisadas hoje"
+erros = "não conseguiu ler"
+humano = "passadas para pessoa"
+[sql]
+conexao = "banco"
+limite_erros_pct = 10
+por_dia = "SELECT dia, n, erros, humano FROM revisor"
+eventos = "SELECT quando, ok, texto FROM revisor_eventos"
+[flag]
+chave = "flag_revisor"

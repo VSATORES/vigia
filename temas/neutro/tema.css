@@ -1,0 +1,26 @@
+/* Tema neutro do Vigia (padrão do repositório). Para outro visual, copie esta pasta,
+   troque os valores e aponte `tema = "caminho/da/pasta"` no vigia.toml. */
+:root{
+ --bg:#F4F4F1;--sf:#FFFFFF;--sf2:#F1F1EE;--ln:#E3E3DE;--ln2:#C9C9C2;
+ --tx:#16181D;--mu:#4E525C;--dim:#6A6E78;
+ --pri:#1E2A44;--pri2:#2F5BD3;--linha:#2F5BD3;--pill-tx:#FFFFFF;--varre:#E4572E;
+ --ok:#15803D;--late:#B45309;--er:#B91C1C;
+ --ok-cel:#22A35A;--late-cel:#F08C1A;--er-cel:#DC2626;--off:#80848D;
+ --sel:#EEF1F8;--cel-none:#E6E6E1;--cel-pc:#B3B3AC;--grid:#E3E3DE;--eixo:#6A6E78;--cursor:#80848D;--foco:#16181D;
+ --faixa:#2F5BD31A;
+ --acao-er-bg:#FEF2F2;--acao-er-ln:#FECACA;--acao-er-tx:#450A0A;--acao-late-bg:#FFF7ED;--acao-late-ln:#FED7AA;--acao-late-tx:#431407;
+ --sombra:#16181D40;
+ --ease:cubic-bezier(.16,1,.3,1);
+ --font:'IBM Plex Sans',ui-sans-serif,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+[data-tema="noite"]{
+ --bg:#111317;--sf:#1A1D23;--sf2:#22262D;--ln:#2B3038;--ln2:#3A404A;
+ --tx:#ECEDEF;--mu:#A4A9B3;--dim:#878C96;
+ --pri:#3B66E0;--pri2:#6E92F0;--linha:#7FA0F4;--pill-tx:#FFFFFF;
+ --ok:#4ADE80;--late:#FBA94C;--er:#F87171;
+ --ok-cel:#22A35A;--late-cel:#F08C1A;--er-cel:#EF4444;--off:#7A808A;
+ --sel:#1E2738;--cel-none:#262A31;--cel-pc:#3E444E;--grid:#2B3038;--eixo:#878C96;--cursor:#A4A9B3;--foco:#ECEDEF;
+ --faixa:#7FA0F41F;
+ --acao-er-bg:#EF44441A;--acao-er-ln:#F8717140;--acao-er-tx:#ECEDEF;--acao-late-bg:#F08C1A1A;--acao-late-ln:#FBA94C40;--acao-late-tx:#ECEDEF;
+ --sombra:#000A;
+}

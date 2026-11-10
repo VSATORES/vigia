@@ -1,0 +1,2 @@
+relatório gerado: 21 itens
+claude exit=0 Tue Oct 27 09:05:10 -03 2026

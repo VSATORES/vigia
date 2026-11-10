@@ -1,0 +1,17 @@
+nome = "Backup noturno"
+area = "Rotinas"
+o_que = "Copia os arquivos do servidor para o disco externo."
+fonte = "log_texto"
+volume_nome = "arquivos copiados por dia"
+[agenda]
+cron = "0 7 * * 1-6"
+rotulo = "seg–sáb 7h"
+[log]
+arquivos = "logs/backup/log-*.txt"
+fim_rodada = 'exit=\d+'
+volume = '(\d+) arquivos copiados'
+[[regras]]
+se = "disco cheio"
+status = "falhou"
+motivo = "Disco cheio"
+acao = "Libere espaço no disco externo; a próxima rodada tenta de novo."

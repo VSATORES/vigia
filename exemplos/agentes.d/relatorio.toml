@@ -1,0 +1,16 @@
+nome = "Relatório diário com IA"
+area = "Rotinas"
+o_que = "Resume o dia anterior em um relatório e salva em HTML."
+fonte = "log_texto"
+[agenda]
+cron = "0 9 * * 1-6"
+rotulo = "seg–sáb 9h"
+duracao_max_min = 60
+[log]
+arquivos = "logs/relatorio/log-*.txt"
+fim_rodada = 'exit=\d+'
+[[regras]]
+se = 'hit your .*?limit.*?resets ([^\n(]+?)\s*\('
+status = "falhou"
+motivo = 'Limite de uso da IA (libera \1)'
+acao = "Volta sozinho amanhã. Para ter o relatório hoje, rode à mão depois que o limite renovar."

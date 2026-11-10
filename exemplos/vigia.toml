@@ -1,0 +1,19 @@
+# Demonstração do Vigia com dados FICTÍCIOS (gerados por scripts/gerar_exemplos.py).
+titulo = "Vigia"
+meta = 0.95
+margem_atraso_min = 10
+intervalo_min = 15
+tema = "neutro"
+saida = "../docs/index.html"
+historico = "dados-demo"
+marcas = "marcas.json"
+agora = "2026-11-10T11:10:00"   # fixa o relógio da demo
+repo = "VSATORES/vigia"
+[vivo]
+arquivos = ["logs/sync.jsonl"]
+[conexoes.banco]
+tipo = "arquivo"
+caminho = "banco-exemplo.json"
+[conexoes.flags]
+tipo = "posthog"
+arquivo = "flags-exemplo.json"

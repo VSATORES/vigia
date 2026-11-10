@@ -1,0 +1,11 @@
+nome = "Triagem automática"
+area = "Agentes de IA"
+o_que = "Move o ticket já classificado para a fila certa."
+fonte = "sql"
+volume_nome = "tickets movidos por dia"
+[sql]
+conexao = "banco"
+por_dia = "SELECT dia, n, erros, humano FROM triagem"
+eventos = "SELECT quando, ok, texto FROM triagem_eventos"
+[flag]
+chave = "flag_triagem"

@@ -1,0 +1,12 @@
+nome = "Sincronização de cadastro"
+area = "Rotinas"
+o_que = "Sincroniza o cadastro entre o sistema e a planilha, de hora em hora."
+fonte = "jsonl"
+[agenda]
+cron = "5 * * * *"
+rotulo = "de hora em hora"
+margem_min = 15
+[log]
+arquivos = "logs/sync.jsonl"
+campo_hora = "hora"
+campo_motivo = ["motivo"]

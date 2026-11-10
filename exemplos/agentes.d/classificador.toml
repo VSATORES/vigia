@@ -1,0 +1,15 @@
+nome = "Classificador de tickets"
+area = "Agentes de IA"
+o_que = "Lê cada ticket novo e dá categoria e prioridade."
+fonte = "sql"
+volume_nome = "tickets classificados por dia"
+[rotulos]
+volume = "classificados hoje"
+humano = "corrigidos por pessoa"
+[sql]
+conexao = "banco"
+por_dia = "SELECT dia, n, erros, humano FROM classificador"
+eventos = "SELECT quando, ok, texto FROM classificador_eventos"
+entrada_por_dia = "SELECT dia, n FROM tickets"
+[flag]
+chave = "flag_classificador"
