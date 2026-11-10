@@ -1,5 +1,15 @@
 # Mudanças
 
+## 2.0.0 — 10/11/2026
+- **Comandar, não só olhar.** No painel aberto em `vigia servir` (localhost), cada item ganha botões:
+  **Rodar agora** (o comando declarado no toml, nunca comando livre), **Investigar com Claude** (diagnóstico
+  só leitura do log e da configuração, aparece no detalhe), **Já vi** (silencia o alerta até o estado mudar)
+  e **Pausar / Retomar**. A saída aparece ao vivo no detalhe. Cópias em arquivo e a demo continuam só leitura.
+- Aba **Quadro**: colunas Precisa de você · Rodando agora · Próximas 3 horas · Tudo certo · Desligado ou pausado.
+- **Aviso** quando um item quebra ou volta ao normal (`[notificar] comando`), sem repetir a cada geração.
+- Novos estados: Pausado e Já visto. `vigia pausado <id>` para scripts respeitarem a pausa.
+- Correção: linha escrita logo depois do fim da rodada (ex.: "copiado para…") não vira rodada fantasma.
+
 ## 1.2.0 — 10/11/2026
 - Aba **Agentes** ganhou a visão em **cartões** (abre por padrão): um cartão por item, agrupado por área, com
   status, última mensagem, barra de batidas (rotina: últimas 40 rodadas; agente de banco: um traço por dia,

@@ -60,6 +60,14 @@ class TestLog(unittest.TestCase):
         self.assertTrue(r[1]["manual"])
         self.assertIsNone(r[1]["dur"])
 
+    def test_linha_depois_do_fim_e_da_mesma_rodada(self):
+        p = os.path.join(self.d, "log-2026-11-10.txt")
+        open(p, "w").write("rodou\nexit=0 Tue Nov 10 09:05:22 -03 2026\ncopiado para Downloads\n")
+        os.utime(p, (T(2026, 11, 10, 9, 5, 23).timestamp(),) * 2)
+        r = log_texto.coletar(self.agente(), {}, T(2026, 11, 10, 12))["rodadas"]
+        self.assertEqual(len(r), 1)
+        self.assertEqual(r[0]["status"], "ok")
+
     def test_log_sem_fim_antigo_e_falha(self):
         open(os.path.join(self.d, "log-2026-11-08.txt"), "w").write("começou\n")
         os.utime(os.path.join(self.d, "log-2026-11-08.txt"), (T(2026, 11, 8, 9).timestamp(),) * 2)

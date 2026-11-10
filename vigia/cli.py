@@ -9,7 +9,7 @@
 O --config também pode vir de VIGIA_CONFIG.
 """
 import argparse, datetime as dt, json, os, shutil, subprocess, sys
-from . import __version__, config, historico, modelo, pagina
+from . import __version__, acoes, config, estado, historico, modelo, notificar, pagina
 from .fontes import COLETORES
 from .fontes.sql import carregar_env
 
@@ -48,8 +48,13 @@ def gerar(caminho, registrar=True, quieto=False):
         except ValueError:
             print("marcas.json inválido, ignorado", file=sys.stderr)
     dados = modelo.montar(geral, agentes, coletas, agora, __version__, marcas)
+    aplicar_estado(geral, agentes, dados)
     if registrar and not geral.get("agora"):
         historico.salvar_dias(geral, agora, dados["itens"])
+    if registrar and not geral.get("agora") and geral.get("notificar"):
+        dados["aviso"] = notificar.verificar(geral, dados)
+    os.makedirs(geral["dados"], exist_ok=True)
+    json.dump(dados, open(os.path.join(geral["dados"], "ultimo.json"), "w", encoding="utf-8"), ensure_ascii=False, default=str)
     html = pagina.render(dados, geral)
     os.makedirs(os.path.dirname(geral["saida"]) or ".", exist_ok=True)
     open(geral["saida"], "w", encoding="utf-8").write(html)
@@ -62,6 +67,30 @@ def gerar(caminho, registrar=True, quieto=False):
         falhas = [i["nome"] for i in dados["itens"] if i["st"] in ("er", "nr")]
         print(f"{geral['saida']} · {len(dados['itens'])} itens · {len(falhas)} com falha" + (f": {', '.join(falhas)}" if falhas else ""))
     return dados
+
+
+def aplicar_estado(geral, agentes, dados):
+    """pausa, "já vi", ações disponíveis e execuções recentes de cada item."""
+    est = estado.ler(geral)
+    por_id = {a["id"]: a for a in agentes}
+    for it in dados["itens"]:
+        a = por_id.get(it["k"], {})
+        p = est["pausa"].get(it["k"])
+        if p:
+            it["st_real"], it["st"] = it["st"], "pause"
+            it["motivo"] = f"Pausado em {p['em'][8:10]}/{p['em'][5:7]} {p['em'][11:16]}" + (f": {p['motivo']}" if p.get("motivo") else "")
+            it["acao"] = ""
+        v = est["visto"].get(it["k"])
+        it["visto"] = bool(v and v.get("st") == it["st"] and it["st"] in ("er", "nr", "late"))
+        if it["visto"]:
+            it["visto_em"] = v["em"]
+        ac = a.get("acoes", {})
+        it["acoes"] = (["rodar"] if ac.get("rodar") else []) + ["investigar", "visto", "retomar" if p else "pausar"]
+        it["execucoes"] = [{k: e.get(k) for k in ("acao", "inicio", "fim", "exit", "rodando")}
+                           for e in acoes.execucoes(geral, it["k"], 5)]
+        if any(e["rodando"] for e in it["execucoes"]):
+            it["rodando_vigia"] = True
+    dados["historico_acoes"] = est["historico"][-40:]
 
 
 MODELOS = {
@@ -122,7 +151,7 @@ chave = ""
 
 def main(argv=None):
     p = argparse.ArgumentParser(prog="vigia", description="Painel de rotinas e agentes.")
-    p.add_argument("comando", choices=["gerar", "servir", "checar-config", "novo-agente", "versao", "atualizar"])
+    p.add_argument("comando", choices=["gerar", "servir", "checar-config", "novo-agente", "versao", "atualizar", "pausado"])
     p.add_argument("nome", nargs="?")
     p.add_argument("--config")
     p.add_argument("--fonte", default="log_texto", choices=list(MODELOS))
@@ -155,19 +184,24 @@ def main(argv=None):
         open(destino, "w", encoding="utf-8").write(MODELOS[a.fonte].format(nome=a.nome))
         print(f"criado {destino} — edite e rode: python3 -m vigia checar-config")
         return
+    if a.comando == "pausado":  # para scripts: `vigia pausado <id> && exit 0`
+        geral, _, _ = config.carregar(caminho)
+        sys.exit(0 if a.nome in estado.ler(geral)["pausa"] else 1)
     if a.comando == "checar-config":
         try:
             geral, agentes, erros = config.carregar(caminho)
         except config.ErroConfig as e:
             sys.exit(str(e))
         for ag in agentes:
-            print(f"  {ag['id']:<22} {ag['fonte']:<10} {ag['nome']}")
+            extra = " · rodar agora" if ag.get("acoes", {}).get("rodar") else ""
+            print(f"  {ag['id']:<22} {ag['fonte']:<10} {ag['nome']}{extra}")
         if erros:
             print("\nProblemas:")
             for e in erros:
                 print("  -", e)
             sys.exit(1)
-        print(f"\nok: {len(agentes)} agentes, meta {geral['meta']:.0%}, tema {geral['tema']}")
+        print(f"\nok: {len(agentes)} agentes, meta {geral['meta']:.0%}, tema {geral['tema']}"
+              + (" · aviso ligado" if geral.get("notificar", {}).get("comando") else ""))
         return
     if a.comando == "gerar":
         gerar(caminho)
@@ -175,7 +209,7 @@ def main(argv=None):
     if a.comando == "servir":
         from .servidor import servir
         geral, _, _ = config.carregar(caminho)
-        servir(geral, lambda: gerar(caminho, quieto=True))
+        servir(geral, lambda: gerar(caminho, quieto=True), caminho)
 
 
 if __name__ == "__main__":

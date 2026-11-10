@@ -52,6 +52,9 @@ def carregar(caminho):
         "agora": g.get("agora"),  # só para demo/teste: fixa o "agora"
         "repo": g.get("repo", ""),
         "avisos": g.get("avisos", []),
+        "dados": _abs(base, g.get("dados", "dados")),
+        "notificar": g.get("notificar", {}),
+        "claude": g.get("claude", "claude"),
     }
     if not 0 < geral["meta"] <= 1:
         erros.append(f"vigia.toml: meta deve estar entre 0 e 1 (ex.: 0.95), veio {geral['meta']}")
@@ -108,6 +111,13 @@ def carregar(caminho):
                         re.compile(r["se"])
                     except re.error as e:
                         erros.append(f"{nome}: regras[{i}].se não é regex válida ({e})")
+        ac = a.get("acoes", {})
+        if ac and not isinstance(ac, dict):
+            erros.append(f"{nome}: [acoes] precisa ser uma seção (rodar, instrucoes, ferramentas)")
+        elif ac.get("rodar") is not None and not str(ac["rodar"]).strip():
+            erros.append(f"{nome}: acoes.rodar vazio")
+        elif ac.get("instrucoes"):
+            ac["instrucoes"] = _abs(base, ac["instrucoes"])
         if a.get("fonte") == "sql":
             s = a.get("sql", {})
             if not s.get("conexao"):

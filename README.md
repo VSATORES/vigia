@@ -101,6 +101,33 @@ Só `SELECT`/`WITH` é aceito. Credenciais sempre por variável de ambiente (`"$
 Conexões (`vigia.toml`): `mcp_http` (servidor MCP com uma ferramenta de consulta), `posthog` (flags) e
 `arquivo` (JSON pronto, usado na demo e nos testes).
 
+## Ações (comandar pelo painel)
+
+Com `python3 -m vigia servir`, o painel em http://127.0.0.1:8787 ganha botões em cada item:
+
+| Botão | O que faz |
+|---|---|
+| **Rodar agora** | executa `[acoes] rodar` do toml do agente (o mesmo comando do cron). Nada fora do toml roda. |
+| **Investigar com Claude** | `claude -p` só leitura com o log, o toml e `[acoes] instrucoes`; o diagnóstico aparece no detalhe |
+| **Já vi** | tira o item de "Precisa de você" até o estado mudar |
+| **Pausar / Retomar** | o item para de alertar; scripts podem consultar `vigia pausado <id>` |
+
+```toml
+[acoes]
+rodar = "/caminho/rodar.sh"
+instrucoes = "/caminho/INSTRUCOES.md"          # opcional: contexto para a investigação
+ferramentas = ["mcp__meu_banco__consultar"]     # opcional: ferramentas extras (só leitura) para investigar
+```
+As rotas aceitam pedido só de 127.0.0.1 e com a chave da instalação (`dados/token`), que vai só na página servida.
+O arquivo gerado (cópia, demo) nunca executa nada.
+
+**Aviso quando quebra ou volta** (uma mensagem por mudança):
+```toml
+[notificar]
+comando = "python3 enviar.py {arquivo}"   # {arquivo}: texto entre <!-- INICIO --> e <!-- FIM -->
+link = "http://localhost:8787"
+```
+
 ## Tema e marca
 
 `tema = "neutro"` (padrão) ou o caminho de uma pasta com `tema.css` (cores dia/noite), `head.html`

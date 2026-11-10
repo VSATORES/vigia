@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 exemplos/dados-demo/
 painel.html
+exemplos/dados/
+dados/

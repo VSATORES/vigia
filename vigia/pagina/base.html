@@ -11,7 +11,7 @@ __TEMA_CSS__
 body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 var(--font);font-variant-numeric:tabular-nums;padding:20px 24px;transition:background-color .3s,color .3s}
 .wrap{max-width:1400px;margin:auto}
 .mono{font-family:var(--mono)}.mu{color:var(--mu)}.dim{color:var(--dim)}
-.ok{color:var(--ok)}.late{color:var(--late)}.er,.nr{color:var(--er)}.off,.none{color:var(--off)}.run{color:var(--pri2)}
+.ok{color:var(--ok)}.late{color:var(--late)}.er,.nr{color:var(--er)}.off,.none,.pause,.visto{color:var(--off)}.run{color:var(--pri2)}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 :focus-visible{outline:2px solid var(--pri2);outline-offset:2px;border-radius:4px}
 kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--ln);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--mu)}
@@ -108,6 +108,35 @@ kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--ln);border-bot
 .st4 .l{font-size:11.5px;color:var(--dim);white-space:nowrap}.st4 .v{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .main.aberto .cards .gr{grid-template-columns:1fr}
 .main.aberto .card .batidas,.main.aberto .card .bleg,.main.aberto .card .st4,.main.aberto .card .msg{display:none}
+/* quadro */
+.quadro{display:grid;grid-template-columns:repeat(5,minmax(220px,1fr));gap:12px;align-items:start;overflow-x:auto;padding-bottom:6px}
+.lane{background:var(--sf2);border:1px solid var(--ln);border-radius:12px;padding:8px;min-height:120px}
+.lane h4{margin:2px 6px 8px;font-size:12.5px;font-weight:600;display:flex;justify-content:space-between;color:var(--mu)}
+.lane h4 b{color:var(--tx)}
+.kc{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:10px 11px;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+.kc:hover{border-color:var(--ln2)}
+.kc .t1{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.kc .t1 b{font-weight:600;font-size:13.5px}
+.kc .ar2{font-size:11.5px;color:var(--dim);margin-top:1px}
+.kc .mo{font-size:12.5px;color:var(--mu);margin:6px 0 0}
+.kc .qd{font-size:11.5px;color:var(--dim);margin-top:6px;font-family:var(--mono)}
+.kc.visto{opacity:.6}
+.kc .bt{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+/* botões de ação */
+.bts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 18px 0}
+.btn{border:1px solid var(--ln2);border-radius:9999px;padding:5px 12px;font-size:12.5px;color:var(--tx);background:var(--sf);display:inline-flex;gap:6px;align-items:center}
+.btn:hover{border-color:var(--tx)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:var(--pill-tx)}
+.btn.min{padding:3px 9px;font-size:11.5px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.tag{font-size:11px;border-radius:9999px;padding:1px 8px;background:var(--sf2);color:var(--mu);font-weight:600}
+.exec{margin:12px 18px 0;border:1px solid var(--ln);border-radius:10px;overflow:hidden}
+.exec .eh{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;background:var(--sf2);font-size:12.5px}
+.exec pre{white-space:pre-wrap;word-break:break-word;font:12px/1.5 var(--mono);margin:0;padding:10px 12px;max-height:280px;overflow:auto}
+.exec .dg{padding:10px 14px;font-size:13.5px;line-height:1.55;border-top:1px solid var(--ln)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--tx);color:var(--sf);padding:10px 16px;border-radius:9999px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;z-index:20;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.so-leitura{font-size:12px;color:var(--dim);margin:10px 18px 0}
 /* topo: a frase é o filtro */
 .head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:16px;flex-wrap:wrap}
 .frase{font-size:26px;font-weight:600;letter-spacing:-.01em;line-height:1.2}
@@ -139,7 +168,7 @@ kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--ln);border-bot
 .row.dimmed{opacity:.28}.row.hide{display:none}
 .st{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px;white-space:nowrap}
 .st i{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
-.st.late i{border-radius:2px}.st.off i,.st.none i{background:none;border:1.5px solid currentColor}
+.st.late i{border-radius:2px}.st.off i,.st.none i,.st.visto i{background:none;border:1.5px solid currentColor}.st.pause i{border-radius:1px;width:8px;background:linear-gradient(90deg,currentColor 0 35%,transparent 35% 65%,currentColor 65%)}
 .st.nr i{border-radius:0;transform:rotate(45deg);width:7px;height:7px}
 .st.run i{animation:pulsa 1.2s infinite}
 @keyframes pulsa{50%{opacity:.3}}
@@ -220,6 +249,7 @@ svg{display:block;width:100%;overflow:visible}
 
 <nav class="abas" id="abas" role="tablist">
  <button data-aba="geral" role="tab">Visão geral</button>
+ <button data-aba="quadro" role="tab">Quadro</button>
  <button data-aba="agentes" role="tab">Agentes <span class="ct" id="ct-ag"></span></button>
 </nav>
 
@@ -238,6 +268,8 @@ svg{display:block;width:100%;overflow:visible}
  </div>
 </section>
 
+<section class="aba" id="aba-quadro" role="tabpanel"><div class="quadro" id="quadro"></div></section>
+
 <section class="aba" id="aba-agentes" role="tabpanel">
 
 <div class="ctl">
@@ -245,7 +277,7 @@ svg{display:block;width:100%;overflow:visible}
  <div class="vis" id="vis" role="group" aria-label="Ver como"><button data-v="cartoes">Cartões</button><button data-v="tabela">Tabela</button></div>
  <div class="filt" id="filt"><button data-g="">Todos</button><button data-g="atencao">Precisa de atenção</button><button data-g="func">Funcionando</button></div>
  <input class="busca" id="busca" placeholder="Buscar agente ou rotina" aria-label="Buscar">
- <div class="atalhos"><span><kbd>↑</kbd><kbd>↓</kbd> navegar</span><span><kbd>Enter</kbd> abrir</span><span><kbd>←</kbd><kbd>→</kbd> dia</span><span><kbd>/</kbd> buscar</span><span><kbd>1</kbd><kbd>2</kbd> abas</span><span><kbd>T</kbd> tema</span><span><kbd>Esc</kbd> voltar</span></div>
+ <div class="atalhos"><span><kbd>↑</kbd><kbd>↓</kbd> navegar</span><span><kbd>Enter</kbd> abrir</span><span><kbd>←</kbd><kbd>→</kbd> dia</span><span><kbd>/</kbd> buscar</span><span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> abas</span><span><kbd>T</kbd> tema</span><span><kbd>Esc</kbd> voltar</span></div>
 </div>
 
 <div class="main" id="main">
@@ -255,22 +287,24 @@ svg{display:block;width:100%;overflow:visible}
 </div>
 </section>
 <div class="rodape" id="rodape"></div>
+<div class="toast" id="toast"></div>
 
 <script>
 const D=__DADOS__;
+const API=null;
 const AGORA=new Date(D.gerado);
 const ITENS=D.itens, EV=D.eventos;
 const dia=n=>{const d=new Date(AGORA);d.setDate(d.getDate()-n);return d};
 const fmt=d=>String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const ROT={ok:'OK',late:'Atrasado',er:'Falhou',nr:'Não rodou',off:'Desligado',run:'Rodando',none:'Sem rodada'};
+const ROT={ok:'OK',late:'Atrasado',er:'Falhou',nr:'Não rodou',off:'Desligado',run:'Rodando',none:'Sem rodada',pause:'Pausado',visto:'Já visto'};
 const RS={ok:'ok',late:'atraso',er:'falha',nr:'não rodou',none:'nada esperado',pc:'computador desligado',run:'rodando'};
 const pct=v=>(v*100).toFixed(1).replace('.',',')+'%';
 
 /* estado na URL: dá para voltar, recarregar e mandar o link */
 const S={aba:'geral',per:14,filtro:null,busca:'',sel:0,aberto:null,diaFoco:null};
 function salva(){history.replaceState(null,'','#'+[S.aba,S.aberto||'',S.diaFoco??'',S.per,S.filtro||''].join('/'));}
-function le(){const p=location.hash.slice(1).split('/');if(p[0]==='geral'||p[0]==='agentes')S.aba=p[0];if(p[1])S.aberto=p[1];if(p[2]!==''&&p[2]!==undefined)S.diaFoco=+p[2];if(p[3])S.per=+p[3];if(p[4])S.filtro=p[4];if(S.aberto)S.aba='agentes';}
+function le(){const p=location.hash.slice(1).split('/');if(['geral','quadro','agentes'].includes(p[0]))S.aba=p[0];if(p[1])S.aberto=p[1];if(p[2]!==''&&p[2]!==undefined)S.diaFoco=+p[2];if(p[3])S.per=+p[3];if(p[4])S.filtro=p[4];if(S.aberto)S.aba='agentes';}
 
 /* topo */
 function topo(){
@@ -281,9 +315,10 @@ function topo(){
  const f=Math.min(1,D.folga_usada||0);
  m.innerHTML=`Sucesso no mês <b>${pct(D.sucesso_mes)}</b> para meta de ${Math.round(D.meta*100)}%<br>${D.folga_usada>1?'<span class="er">estourou a folga do mês</span>':'já usou '+Math.round(f*100)+'% da folga do mês'} · ${D.ruim_mes} de ${D.ok_mes+D.ruim_mes} item×dia com falha<div class="bar"><i class="${D.folga_usada>1?'cheia':''}" style="width:${Math.round(f*100)}%"></i></div>`;
 }
-function frase(){const c={er:0,nr:0,late:0,off:0,ok:0,run:0,none:0};ITENS.forEach(i=>c[i.st]=(c[i.st]||0)+1);
+const chave=i=>i.visto?'visto':i.st;
+function frase(){const c={er:0,nr:0,late:0,off:0,ok:0,run:0,none:0,pause:0,visto:0};ITENS.forEach(i=>c[chave(i)]=(c[chave(i)]||0)+1);
  const parte=(k,txt)=>c[k]?`<button class="${k} ${S.filtro===k?'on':''}" data-f="${k}">${txt(c[k])}</button>`:'';
- const ps=[parte('er',n=>n+(n>1?' falharam':' falhou')),parte('nr',n=>n+' não '+(n>1?'rodaram':'rodou')),parte('late',n=>n+(n>1?' atrasados':' atrasado')),parte('run',n=>n+' rodando'),parte('off',n=>n+(n>1?' desligados':' desligado')),parte('ok',n=>n+' normais'),parte('none',n=>n+' sem rodada')].filter(Boolean);
+ const ps=[parte('er',n=>n+(n>1?' falharam':' falhou')),parte('nr',n=>n+' não '+(n>1?'rodaram':'rodou')),parte('late',n=>n+(n>1?' atrasados':' atrasado')),parte('run',n=>n+' rodando'),parte('off',n=>n+(n>1?' desligados':' desligado')),parte('visto',n=>n+(n>1?' já vistos':' já visto')),parte('pause',n=>n+(n>1?' pausados':' pausado')),parte('ok',n=>n+' normais'),parte('none',n=>n+' sem rodada')].filter(Boolean);
  const alerta=c.er||c.nr||c.late;
  document.getElementById('frase').innerHTML=(alerta?`<span style="font-weight:400;color:var(--mu)">${esc(D.titulo)} encontrou </span>`:`${esc(D.titulo)} sem alertas. `)+ps.join('<span class="sep">, </span>');
  document.getElementById('marca').classList.toggle('alerta',!!alerta);
@@ -292,7 +327,7 @@ function frase(){const c={er:0,nr:0,late:0,off:0,ok:0,run:0,none:0};ITENS.forEac
 
 /* matriz */
 const GRP={atencao:['er','nr','late'],func:['ok','run']};
-function visiveis(){return ITENS.filter(i=>(!S.filtro||i.st===S.filtro)&&(!S.grupo||GRP[S.grupo].includes(i.st))&&(!S.busca||(i.nome+' '+i.k+' '+i.area).toLowerCase().includes(S.busca)));}
+function visiveis(){return ITENS.filter(i=>(!S.filtro||chave(i)===S.filtro)&&(!S.grupo||GRP[S.grupo].includes(i.st))&&(!S.busca||(i.nome+' '+i.k+' '+i.area).toLowerCase().includes(S.busca)));}
 function matriz(){const n=S.per,cols=`repeat(${n},1fr)`;
  let h=`<div class="row hd"><span>Status</span><span>Nome</span><div class="days" style="grid-template-columns:${cols}">${
   Array.from({length:n},(_,j)=>{const i=n-1-j;return `<span>${n<=14||i%5===0?(i===0?'hoje':fmt(dia(i)).slice(0,2)):''}</span>`}).join('')}</div><span style="text-align:right">Última</span></div>`;
@@ -303,7 +338,7 @@ function matriz(){const n=S.per,cols=`repeat(${n},1fr)`;
   const cells=Array.from({length:n},(_,j)=>{const i=n-1-j,s=it.dias[i];
    return `<div class="cell ${s==='ok'?'':s} ${S.aberto===it.k&&S.diaFoco===i?'focus':''}" data-i="${i}" title="${fmt(dia(i))} · ${RS[s]||s}${it.vol[i]?' · '+it.vol[i]:''}"></div>`}).join('');
   h+=`<div class="row ${hide?'hide':''} ${S.aberto===it.k?'sel':''}" data-k="${it.k}" tabindex="-1">
-   <span class="st ${it.st}"><i></i>${ROT[it.st]||it.st}</span><span class="nm" title="${esc(it.motivo)}">${esc(it.nome)}<small>${esc(it.tipo)}</small></span>
+   <span class="st ${chave(it)}"><i></i>${ROT[chave(it)]||it.st}</span><span class="nm" title="${esc(it.motivo)}">${esc(it.nome)}<small>${esc(it.tipo)}</small></span>
    <div class="cells" style="grid-template-columns:${cols}">${cells}</div><span class="ult">${esc(it.ult)}</span></div>`;});
  h+=`<div class="leg"><span><i style="background:var(--ok-cel)"></i>ok</span><span><i style="background:var(--late-cel);height:7px;align-self:end"></i>atraso</span><span><i style="background:repeating-linear-gradient(45deg,var(--er-cel) 0 3px,#ffffff73 3px 4.5px),var(--er-cel)"></i>falha ou não rodou</span><span><i style="background:repeating-linear-gradient(135deg,var(--cel-pc) 0 2px,var(--cel-none) 2px 5px)"></i>computador desligado (fora da meta)</span><span><i style="background:var(--cel-none)"></i>nada esperado</span></div>`;
  const m=document.getElementById('mtx');m.innerHTML=h;
@@ -345,12 +380,13 @@ function detalhe(it){const i=S.diaFoco;
  return `<div class="dh"><div><div class="crumb"><button data-a="fecha">Todos</button> / <b>${esc(it.nome)}</b>${i!=null?` / ${fmt(dia(i))}`:''}</div>
   <div class="dt"><span class="st ${it.st}" style="display:inline-flex;font-size:14px;margin-right:8px"><i></i>${ROT[it.st]||it.st}</span><span style="font-size:14px;font-weight:400;color:var(--mu)">${esc(it.motivo)}</span></div>
   <div class="what">${esc(it.oque)}</div></div><button class="x" data-a="fecha">Esc</button></div>
- ${it.acao?`<div class="acao ${it.st==='late'?'late':''}">${it.acao}</div>`:''}
+ ${it.acao&&!it.visto?`<div class="acao ${it.st==='late'?'late':''}">${it.acao}</div>`:''}${it.visto?`<div class="so-leitura">Marcado como já visto em ${esc((it.visto_em||'').replace('T',' ').slice(0,16))}. Volta a alertar se o estado mudar.</div>`:''}
+ ${botoes(it,false)}<div id="execs"></div>
  <div class="nums">${it.nums.map(([v,l,c])=>`<div><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div><div class="c">${esc(c)}</div></div>`).join('')}</div>
  <div class="sec">${esc(it.volNome)}<span>clique num dia para ver as rodadas dele</span></div><div class="chart">${grafico(it)}</div>
  ${duracoes(it)}
  <div class="sec">Rodadas de ${fmt(dia(i??0))}${i==null||i===0?' (hoje)':''}<span><kbd>←</kbd> <kbd>→</kbd> dia anterior / seguinte · clique para ver o registro</span></div><div class="runs">${rodadas(it)}</div>`;}
-function ligaDetalhe(it){const dc=document.getElementById('dc');dc.querySelectorAll('[data-a="fecha"]').forEach(b=>b.onclick=fecha);
+function ligaDetalhe(it){const dc=document.getElementById('dc');dc.querySelectorAll('[data-a="fecha"]').forEach(b=>b.onclick=fecha);ligaBotoes(dc);mostraExecs(it.k,false);
  const svg=dc.querySelector('#gsvg');if(!svg)return;const n=Math.max(S.per,7),W=1000,tip=dc.querySelector('#gtip'),gx=svg.querySelector('#gx');
  const idx=e=>{const b=svg.getBoundingClientRect();return Math.max(0,Math.min(n-1,Math.round(((e.clientX-b.left)/b.width*W-4)/((W-8)/(n-1)))))};
  const hit=svg.querySelector('#ghit');
@@ -374,7 +410,7 @@ per.querySelectorAll('button').forEach(b=>b.onclick=()=>{per.querySelectorAll('b
 /* teclado */
 const busca=document.getElementById('busca');busca.oninput=()=>{S.busca=busca.value.toLowerCase();render();};
 document.addEventListener('keydown',e=>{
- if(e.target!==busca&&(e.key==='1'||e.key==='2')){mostraAba(e.key==='1'?'geral':'agentes');return;}
+ if(e.target!==busca&&['1','2','3'].includes(e.key)){mostraAba({1:'geral',2:'quadro',3:'agentes'}[e.key]);return;}
  if(e.target===busca){if(e.key==='Escape'){busca.value='';S.busca='';busca.blur();render();}return;}
  const vis=visiveis();if(!vis.length)return;let pos=vis.findIndex(i=>i.k===(S.aberto||ITENS[S.sel]?.k));if(pos<0)pos=0;
  if(e.key==='/'){e.preventDefault();busca.focus();}
@@ -400,6 +436,55 @@ if(D.repo){fetch('https://api.github.com/repos/'+D.repo+'/releases/latest').then
 document.getElementById('rodape').innerHTML=`<span>${ITENS.length} itens monitorados</span><span>gerado ${AGORA.toLocaleString('pt-BR')}</span><span>só leitura: o painel não liga, desliga nem reroda nada</span>`;
 
 
+
+/* ======== ações (só no localhost) ======== */
+const ROT_AC={rodar:'▶ Rodar agora',investigar:'Investigar com Claude',visto:'Já vi',pausar:'Pausar',retomar:'Retomar'};
+function botoes(it,mini){const ac=(it.acoes||[]).filter(a=>a!=='visto'||(['er','nr','late'].includes(it.st)&&!it.visto));
+ if(!ac.length)return '';
+ const h=ac.map(a=>`<button class="btn ${mini?'min':''} ${a==='rodar'?'pri':''}" data-ac="${a}" data-k="${it.k}" ${API?'':'disabled title="disponível só no painel aberto em http://localhost:8787"'}>${ROT_AC[a]}</button>`).join('');
+ return mini?`<div class="bt">${h}</div>`:`<div class="bts">${h}</div>${API?'':'<div class="so-leitura">Botões só funcionam no painel aberto pelo endereço da instalação local (http://localhost:8787).</div>'}`;}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),4200);}
+async function api(acao,id,corpo){if(!API){toast('Ações só funcionam em http://localhost:8787');return null;}
+ try{const r=await fetch('/api/'+acao+'/'+id,{method:'POST',headers:{'X-Vigia-Token':API.token,'Content-Type':'application/json'},body:JSON.stringify(corpo||{})});
+  const j=await r.json();if(!r.ok){toast(j.erro||'não deu certo');return null;}return j;}catch(e){toast('o servidor do painel não respondeu');return null;}}
+function ligaBotoes(raiz){raiz.querySelectorAll('[data-ac]').forEach(b=>b.onclick=async ev=>{ev.stopPropagation();const a=b.dataset.ac,k=b.dataset.k,it=ITENS.find(x=>x.k===k);
+ let corpo={};
+ if(a==='rodar'&&!confirm(`Rodar "${it.nome}" agora?\n\nExecuta o mesmo comando do agendamento.`))return;
+ if(a==='pausar'){const m=prompt(`Pausar "${it.nome}"? Ele deixa de alertar até você retomar.\nMotivo (opcional):`,'');if(m===null)return;corpo={texto:m};}
+ b.disabled=true;const j=await api(a,k,corpo);b.disabled=false;if(!j)return;
+ if(a==='rodar'||a==='investigar'){toast(a==='rodar'?'Rodando… acompanhe abaixo':'Investigando… o diagnóstico aparece abaixo');if(S.aberto!==k)abre(k,null);mostraExecs(k,true);}
+ else{if(a==='visto'){it.visto=true;it.visto_em=new Date().toISOString();toast('Marcado como já visto');}
+  if(a==='pausar'){it.st_real=it.st;it.st='pause';it.motivo='Pausado agora';it.acoes=it.acoes.map(x=>x==='pausar'?'retomar':x);toast('Pausado');}
+  if(a==='retomar'){it.st=it.st_real||'ok';it.acoes=it.acoes.map(x=>x==='retomar'?'pausar':x);toast('Retomado');}
+  render();geral();quadro();}});}
+const md=t=>esc(t).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\n/g,'<br>');
+let _poll=null;
+async function mostraExecs(k,seguir){const box=document.getElementById('execs');if(!box)return;
+ if(!API){const ex=(ITENS.find(x=>x.k===k)||{}).execucoes||[];box.innerHTML=ex.length?`<div class="sec">Ações recentes<span>pelo painel</span></div>`+ex.map(e=>`<div class="exec"><div class="eh"><span>${e.acao} · ${esc((e.inicio||'').replace('T',' ').slice(0,16))}</span><span>${e.rodando?'rodando':'terminou'}</span></div></div>`).join(''):'';return;}
+ let ex=[];try{const r=await fetch('/api/execucoes/'+k,{headers:{'X-Vigia-Token':API.token}});ex=(await r.json()).execucoes||[];}catch(e){return;}
+ if(S.aberto!==k)return;
+ box.innerHTML=ex.length?`<div class="sec">Ações pelo painel<span>${ex.some(e=>e.rodando)?'atualizando a cada 2 s':'últimas 5'}</span></div>`+ex.slice(0,seguir?2:3).map((e,j)=>{
+  const st=e.rodando?'<span class="run">● rodando</span>':e.exit===0?'<span class="ok">terminou bem</span>':`<span class="er">terminou com erro (${e.exit})</span>`;
+  const corpo=e.acao==='investigar'?(e.diagnostico?`<div class="dg">${md(e.diagnostico)}</div>`:`<pre>${e.rodando?'O Claude está lendo o registro e a configuração…':esc(e.saida||'')}</pre>`):`<pre>${esc((e.saida||'').slice(-4000))||'(sem saída ainda)'}</pre>`;
+  return `<details class="exec" ${j===0?'open':''}><summary class="eh"><span><b>${e.acao==='rodar'?'Rodada à mão':'Investigação'}</b> · ${esc((e.inicio||'').replace('T',' ').slice(0,16))}</span>${st}</summary>${corpo}</details>`}).join(''):'';
+ clearTimeout(_poll);
+ if(ex.some(e=>e.rodando))_poll=setTimeout(()=>mostraExecs(k,true),2000);
+ else if(seguir){toast('Terminou. O painel se atualiza em instantes.');setTimeout(()=>location.reload(),15000);}}
+
+/* ======== quadro por situação ======== */
+function raia(i){if(i.rodando_vigia||i.st==='run')return 'rodando';if(['er','nr','late'].includes(i.st))return 'voce';
+ if(['off','pause','none'].includes(i.st))return 'parado';if(i.prox&&(new Date(i.prox)-AGORA)<3*36e5)return 'proximas';return 'certo';}
+function quadro(){const L=[['voce','Precisa de você'],['rodando','Rodando agora'],['proximas','Próximas 3 horas'],['certo','Tudo certo'],['parado','Desligado ou pausado']];
+ const g={};ITENS.forEach(i=>(g[raia(i)]=g[raia(i)]||[]).push(i));
+ if(g.voce)g.voce.sort((a,b)=>(a.visto?1:0)-(b.visto?1:0));
+ if(g.proximas)g.proximas.sort((a,b)=>new Date(a.prox)-new Date(b.prox));
+ document.getElementById('quadro').innerHTML=L.map(([k,t])=>`<div class="lane"><h4><b>${t}</b><span>${(g[k]||[]).length}</span></h4>${(g[k]||[]).map(i=>`
+  <div class="kc ${i.visto?'visto':''}" data-k="${i.k}"><div class="t1"><b>${esc(i.nome)}</b><span class="st ${chave(i)}" style="font-size:11.5px"><i></i>${ROT[chave(i)]}</span></div>
+  <div class="ar2">${esc(i.area)}</div><div class="mo">${esc(i.motivo)}</div>
+  <div class="qd">última ${esc(i.ult)}${i.prox?' · próxima '+new Date(i.prox).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''}</div>
+  ${k==='voce'||k==='parado'?botoes(i,true):''}</div>`).join('')||'<div class="vazio" style="padding:6px">—</div>'}</div>`).join('');
+ const q=document.getElementById('quadro');q.querySelectorAll('.kc').forEach(c=>c.onclick=()=>abre(c.dataset.k,null));ligaBotoes(q);}
+
 /* ======== abas ======== */
 function mostraAba(a){S.aba=a;document.querySelectorAll('#abas button').forEach(b=>{const on=b.dataset.aba===a;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
  document.querySelectorAll('.aba').forEach(x=>x.classList.toggle('on',x.id==='aba-'+a));if(a==='agentes')setTimeout(movePill,0);salva();}
@@ -408,7 +493,7 @@ document.querySelectorAll('#abas button').forEach(b=>b.onclick=()=>{mostraAba(b.
 /* ======== visão geral ======== */
 const RUIM=s=>s==='er'||s==='nr', BOM=s=>s==='ok'||s==='late';
 function geral(){
- const prob=ITENS.filter(i=>['er','nr','late'].includes(i.st));
+ const prob=ITENS.filter(i=>['er','nr','late'].includes(i.st)&&!i.visto);
  const ct=document.getElementById('ct-ag');ct.textContent=prob.length?prob.length+' com alerta':ITENS.length;ct.className='ct'+(prob.length?' er':'');
  // números gerais
  const evH=EV.filter(e=>e[2]!=='pc'), okH=evH.filter(e=>e[2]==='ok').length, ruimH=evH.filter(e=>RUIM(e[2])).length;
@@ -426,7 +511,7 @@ function geral(){
  // precisa de você
  const ord={er:0,nr:1,late:2};prob.sort((a,b)=>ord[a.st]-ord[b.st]);
  document.getElementById('pend-n').textContent=prob.length?prob.length+(prob.length>1?' itens':' item'):'';
- document.getElementById('pend').innerHTML=prob.length?prob.map(i=>`<div class="pend" data-k="${i.k}"><span class="st ${i.st}"><i></i>${ROT[i.st]}</span><div><div class="n">${esc(i.nome)}</div><div class="a">${i.acao||esc(i.motivo)}</div></div><span class="ir">abrir →</span></div>`).join('')
+ document.getElementById('pend').innerHTML=prob.length?prob.map(i=>`<div class="pend" data-k="${i.k}"><span class="st ${i.st}"><i></i>${ROT[i.st]}</span><div><div class="n">${esc(i.nome)}</div><div class="a">${i.acao||esc(i.motivo)}</div></div><span class="ir">abrir →</span></div>`).join('')+(ITENS.some(i=>i.visto)?`<div class="pend" style="cursor:default"><span class="st visto"><i></i>Já visto</span><div class="a">${ITENS.filter(i=>i.visto).map(i=>esc(i.nome)).join(', ')}</div><span></span></div>`:'')
   :'<div class="limpo">Nada precisando de você agora.</div>';
  document.querySelectorAll('.pend').forEach(p=>p.onclick=()=>abre(p.dataset.k,null));
  // por área
@@ -495,7 +580,7 @@ S.grupo=null;S.vis='cartoes';try{S.vis=localStorage.getItem('vigia-visao')||'car
 document.querySelectorAll('#vis button').forEach(b=>b.onclick=()=>{S.vis=b.dataset.v;try{localStorage.setItem('vigia-visao',S.vis)}catch(e){};render();});
 document.querySelectorAll('#filt button').forEach(b=>b.onclick=()=>{S.grupo=b.dataset.g||null;render();});
 function render(){topo();frase();matriz();cartoes();visao();registro();if(S.aberto)atualizaDetalhe(false);salva();}
-le();per.querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===S.per));geral();render();mostraAba(S.aba);movePill();
+le();per.querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===S.per));geral();quadro();render();mostraAba(S.aba);movePill();
 if(S.aberto){main.classList.add('aberto');det.classList.add('on');atualizaDetalhe(false);}else marca();
 setInterval(topo,30000);
 </script>

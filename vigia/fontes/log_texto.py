@@ -31,8 +31,10 @@ def hora_no_texto(txt):
     return None
 
 
-def _pedacos(txt, fim_re):
-    """divide o arquivo em rodadas: cada pedaço termina numa linha que casa fim_re."""
+def _pedacos(txt, fim_re, mtime=None):
+    """divide o arquivo em rodadas: cada pedaço termina numa linha que casa fim_re.
+    Linhas que sobram logo depois do fim (ex.: "copiado para Downloads") são da rodada anterior,
+    não uma rodada nova: o arquivo não foi mexido mais de 10 min depois do último fim."""
     if not fim_re:
         return [txt]
     linhas, atual, out = txt.splitlines(), [], []
@@ -42,7 +44,12 @@ def _pedacos(txt, fim_re):
             out.append("\n".join(atual))
             atual = []
     if any(x.strip() for x in atual):
-        out.append("\n".join(atual))
+        resto = "\n".join(atual)
+        fim_ant = hora_no_texto(out[-1]) if out else None
+        if out and fim_ant and mtime and (mtime - fim_ant) <= dt.timedelta(minutes=10) and not hora_no_texto(resto):
+            out[-1] += "\n" + resto
+        else:
+            out.append(resto)
     return out or [txt]
 
 
@@ -87,7 +94,7 @@ def coletar(agente, geral, agora):
                     hora_nome = dia_nome.replace(hour=int(m.group(2)))
             except ValueError:
                 pass
-        for i, pedaco in enumerate(_pedacos(txt, fim_re)):
+        for i, pedaco in enumerate(_pedacos(txt, fim_re, mtime)):
             fechou = bool(fim_re and re.search(fim_re, pedaco))
             fim = hora_no_texto(pedaco) if fechou else None
             manual = False
