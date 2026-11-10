@@ -14,6 +14,7 @@
  --font:'IBM Plex Sans',ui-sans-serif,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
 }
 [data-tema="noite"]{
+ --cal-1:#4A1D22;--cal-2:#4A3416;--cal-3:#1C3B2A;--cal-4:#1E6B40;--cal-5:#22A35A;
  --bg:#111317;--sf:#1A1D23;--sf2:#22262D;--ln:#2B3038;--ln2:#3A404A;
  --tx:#ECEDEF;--mu:#A4A9B3;--dim:#878C96;
  --pri:#3B66E0;--pri2:#6E92F0;--linha:#7FA0F4;--pill-tx:#FFFFFF;

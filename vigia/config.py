@@ -51,6 +51,7 @@ def carregar(caminho):
         "env_arquivo": _abs(base, g.get("env_arquivo", "")),
         "agora": g.get("agora"),  # só para demo/teste: fixa o "agora"
         "repo": g.get("repo", ""),
+        "avisos": g.get("avisos", []),
     }
     if not 0 < geral["meta"] <= 1:
         erros.append(f"vigia.toml: meta deve estar entre 0 e 1 (ex.: 0.95), veio {geral['meta']}")

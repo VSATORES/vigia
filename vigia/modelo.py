@@ -314,6 +314,63 @@ def item_agente(a, col, geral, agora):
 ORDEM = {"er": 0, "nr": 1, "late": 2, "run": 3, "ok": 4, "none": 5, "off": 6}
 
 
+def saude(geral, agentes, coletas, agora):
+    """o que todos os itens precisam para funcionar: agendador, fontes, flags e avisos configurados."""
+    import glob, re, subprocess
+    out = []
+    try:
+        cron_ok = subprocess.run(["pgrep", "-x", "cron"], capture_output=True, timeout=5).returncode == 0
+        out.append({"nome": "Agendador (cron)", "st": "ok" if cron_ok else "er",
+                    "txt": "rodando" if cron_ok else "parado: nenhuma rotina vai rodar"})
+    except (OSError, subprocess.SubprocessError):
+        pass
+    sqls = [a for a in agentes if a["fonte"] == "sql"]
+    if sqls:
+        ruins = [a["nome"] for a in sqls if coletas[a["id"]].get("erro_fonte")]
+        out.append({"nome": "Leitura do banco", "st": "er" if ruins else "ok",
+                    "txt": f"falhou em {len(ruins)}: {', '.join(ruins[:3])}" if ruins else f"{len(sqls)} agentes lidos"})
+        com_flag = [a for a in sqls if a.get("flag", {}).get("chave")]
+        if com_flag:
+            lidas = [a for a in com_flag if coletas[a["id"]].get("flag") is not None]
+            out.append({"nome": "Flags", "st": "ok" if len(lidas) == len(com_flag) else "late",
+                        "txt": f"{len(lidas)} de {len(com_flag)} lidas" + ("" if len(lidas) == len(com_flag) else " · as outras aparecem como 'não lida'")})
+    textos = []
+    for a in agentes:
+        if a["fonte"] != "sql":
+            for r in coletas[a["id"]].get("rodadas", [])[-6:]:
+                textos.append((r["ini"], r.get("trecho", "") + "\n" + r.get("motivo", "")))
+    textos.sort()
+    for av in geral.get("avisos", []):
+        achou = None
+        for t, txt in textos:
+            mm = re.search(av["se"], txt, re.I | re.S)
+            if mm:
+                achou = (t, mm)
+        if not achou:
+            if av.get("ok"):
+                out.append({"nome": av["nome"], "st": "ok", "txt": av["ok"]})
+            continue
+        t, mm = achou
+        txt = mm.expand(av.get("texto", av["nome"]))
+        st = av.get("status", "late")
+        if av.get("data_grupo"):
+            try:
+                d = dt.date.fromisoformat(mm.group(int(av["data_grupo"])))
+                dias = (d - agora.date()).days
+                txt += f" (em {dias} dias)" if dias >= 0 else " (já venceu)"
+                st = "er" if dias <= 2 else "late" if dias <= int(av.get("avisar_dias", 7)) else "ok"
+            except (ValueError, IndexError):
+                pass
+        elif av.get("janela_horas") and (agora - t) > dt.timedelta(hours=int(av["janela_horas"])):
+            if av.get("ok"):
+                out.append({"nome": av["nome"], "st": "ok", "txt": av["ok"]})
+            continue
+        else:
+            txt += f" · {quando_txt(t, agora)}"
+        out.append({"nome": av["nome"], "st": st, "txt": txt})
+    return out
+
+
 def montar(geral, agentes, coletas, agora, versao, marcas=None):
     itens, eventos, carimbos = [], [], []
     for a in agentes:  # sinais de vida vêm de qualquer rodada registrada
@@ -349,4 +406,5 @@ def montar(geral, agentes, coletas, agora, versao, marcas=None):
         "gerado": agora.isoformat(), "intervalo_min": int(geral.get("intervalo_min", 15)),
         "meta": meta, "sucesso_mes": sucesso, "folga_usada": folga, "ok_mes": ok, "ruim_mes": ruim, "pc_dias": pc_dias,
         "itens": itens, "eventos": eventos[:80], "marcas": marcas or [], "repo": geral.get("repo", ""),
+        "saude": saude(geral, agentes, coletas, agora),
     }

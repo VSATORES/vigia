@@ -17,3 +17,10 @@ caminho = "banco-exemplo.json"
 [conexoes.flags]
 tipo = "posthog"
 arquivo = "flags-exemplo.json"
+
+[[avisos]]
+nome = "Limite de uso da IA"
+se = 'hit your .*?limit'
+texto = "estourou"
+janela_horas = 24
+ok = "sem estouro nas últimas 24h"
