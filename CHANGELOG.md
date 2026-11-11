@@ -1,5 +1,8 @@
 # Mudanças
 
+## 2.5.1 — 11/11/2026
+- Vídeo para ao fechar a tela cheia, ao trocar de anexo ou de aba do navegador, e continua de onde parou ("Continuar de onde parou").
+
 ## 2.5.0 — 11/11/2026
 - **Vídeo como folha de 8 quadros** (imagem, com o minuto de cada quadro), no slide e na tela cheia, com "Tocar o vídeo"
   embaixo. Não depende da placa de vídeo do navegador (áudio sem imagem) e alivia o navegador. Precisa de ffmpeg na máquina.

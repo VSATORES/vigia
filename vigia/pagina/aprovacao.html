@@ -277,11 +277,17 @@ let tAviso;function aviso(t,desf){const a=$('#aviso');$('#aviso-t').textContent=
 $('#desfazer').onclick=()=>{if(!pend)return;clearTimeout(pend.t);const k=pend.k;pend=null;render();const i=vis().findIndex(p=>chave(p)===k);if(i>=0){atual=i;posiciona(true)}$('#aviso').classList.remove('on')};
 addEventListener('beforeunload',()=>{if(pend)envia()});
 let lbP=null,lbI=0,lbVolta=null;function abreLB(p,i){if(!p||!(p.midia||[]).length)return;lbP=p;lbI=i;lbVolta=document.activeElement;$('#lb').classList.add('on');lb();$('#lb .x').focus()}
-function lb(){const M=lbP.midia,m=M[lbI],u=urlOk(m.url);$('#lbt').innerHTML=`${esc(m.rotulo)} <span>${esc(lbP.agente_nome)}</span>${u?`<a class="painel-link" href="${esc(u)}" target="_blank" rel="noopener">Abrir em outra aba</a>`:''}<button class="x" aria-label="Fechar" onclick="fechaLB()">${I.x}</button>`;
- let h=!u?'<p>Anexo sem endereço válido.</p>':(m.tipo||'imagem')==='imagem'?`<img src="${esc(u)}" alt="${esc(m.rotulo)}">`:m.tipo==='video'?`<div class="lbv">${quadrosImg(lbP,lbI)}<button class="op principal" onclick="this.parentNode.innerHTML='<video src=&quot;${esc(u)}&quot; controls autoplay style=&quot;max-width:100%;max-height:100%;border-radius:12px&quot;></video>'">▶ Tocar o vídeo</button></div>`:`<iframe src="${esc(u)}" title="${esc(m.rotulo)}"></iframe>`;
+function lb(){paraVideos();const M=lbP.midia,m=M[lbI],u=urlOk(m.url);$('#lbt').innerHTML=`${esc(m.rotulo)} <span>${esc(lbP.agente_nome)}</span>${u?`<a class="painel-link" href="${esc(u)}" target="_blank" rel="noopener">Abrir em outra aba</a>`:''}<button class="x" aria-label="Fechar" onclick="fechaLB()">${I.x}</button>`;
+ let h=!u?'<p>Anexo sem endereço válido.</p>':(m.tipo||'imagem')==='imagem'?`<img src="${esc(u)}" alt="${esc(m.rotulo)}">`:m.tipo==='video'?`<div class="lbv">${quadrosImg(lbP,lbI)}<button class="op principal" data-tocar="${esc(u)}">▶ ${POSV[u]?'Continuar de onde parou':'Tocar o vídeo'}</button></div>`:`<iframe src="${esc(u)}" title="${esc(m.rotulo)}"></iframe>`;
  $('#lba').innerHTML=h+(M.length>1?`<button class="nv e" aria-label="Anexo anterior" onclick="lbI=(lbI-1+lbP.midia.length)%lbP.midia.length;lb()">${I.l}</button><button class="nv d" aria-label="Próximo anexo" onclick="lbI=(lbI+1)%lbP.midia.length;lb()">${I.r}</button>`:'');
+ $('#lba').querySelectorAll('[data-tocar]').forEach(bt=>bt.onclick=()=>tocaVideo(bt,bt.dataset.tocar));
  $('#lbm').innerHTML=M.length>1?M.map((x,j)=>`<button class="tira" aria-current="${j===lbI}" aria-label="${esc(x.rotulo)}" onclick="lbI=${j};lb()">${thumb(x)}</button>`).join(''):''}
-function fechaLB(){$('#lb').classList.remove('on');lbVolta&&lbVolta.focus()}
+const POSV={};
+function paraVideos(){document.querySelectorAll('#lba video').forEach(v=>{POSV[v.dataset.u]=v.currentTime;v.pause()})}
+function fechaLB(){paraVideos();$('#lba').innerHTML='';$('#lb').classList.remove('on');lbVolta&&lbVolta.focus()}
+function tocaVideo(bt,u){bt.parentNode.innerHTML=`<video data-u="${esc(u)}" src="${esc(u)}" controls style="max-width:100%;max-height:100%;border-radius:12px"></video>`;
+ const v=document.querySelector('#lba video');v.addEventListener('loadedmetadata',()=>{if(POSV[u])v.currentTime=POSV[u]},{once:true});v.addEventListener('pause',()=>{POSV[u]=v.currentTime});v.play().catch(()=>{})}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)paraVideos()});
 $('#ant').innerHTML=I.l;$('#prox').innerHTML=I.r;$('#ant').onclick=()=>vai(-1);$('#prox').onclick=()=>vai(1);
 addEventListener('resize',()=>{posiciona(true);cabe()});
 let tx=null;addEventListener('touchstart',e=>{if(e.touches.length===1)tx=e.touches[0].clientX},{passive:true});addEventListener('touchend',e=>{if(tx===null)return;const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>50)vai(d<0?1:-1);tx=null});
