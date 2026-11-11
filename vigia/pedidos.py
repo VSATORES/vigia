@@ -14,7 +14,7 @@ import datetime as dt, glob, json, os, re, shlex, subprocess, threading
 OBRIGATORIOS = ("id", "agente", "titulo", "risco", "proposta")
 RISCOS = ("producao", "envio_externo", "dinheiro", "interno", "saude")
 DECISOES = ("aprovar", "recusar", "adiar", "outra")
-FINAIS = ("aprovado", "recusado", "executado", "falhou", "executando", "outra")
+FINAIS = ("aprovado", "recusado", "executado", "falhou", "executando", "outra", "expirado", "conferido")
 _trava = threading.Lock()
 RE_ID = re.compile(r"^[\w.-]{1,80}$")
 
@@ -113,9 +113,22 @@ def ler(geral):
     return out, prob
 
 
+def _data(v):
+    """ISO com ou sem fuso -> datetime local sem fuso (ou None)."""
+    try:
+        d = dt.datetime.fromisoformat(str(v))
+    except (TypeError, ValueError):
+        return None
+    return d.astimezone().replace(tzinfo=None) if d.tzinfo else d
+
+
 def pendentes(geral, quando=None):
-    """Pedidos que esperam a pessoa: sem decisão, ou adiados cujo prazo já passou."""
+    """Pedidos que esperam a pessoa: sem decisão, ou adiados cujo prazo já passou.
+    Pedido parado além da validade ([aprovacao] validade_horas, padrão 72) vence sozinho: vira "expirado" e volta
+    para o agente reavaliar (ele grava de novo, com id novo, se ainda fizer sentido).
+    Ordem: o que vence primeiro (prazo, ou criado + 48 h), depois o risco, depois quem espera há mais tempo."""
     quando = quando or agora()
+    validade = float(geral.get("aprovacao", {}).get("validade_horas", 72))
     est = estados(geral)
     lista, _ = ler(geral)
     out = []
@@ -126,18 +139,34 @@ def pendentes(geral, quando=None):
                 continue
             if ev.get("estado") == "adiado" and ev.get("ate") and dt.datetime.fromisoformat(ev["ate"]) > quando:
                 continue
+        criado = _data(p.get("criado_em"))
+        if criado and validade > 0 and (quando - criado).total_seconds() > validade * 3600 and not (ev and ev.get("estado") == "adiado"):
+            try:
+                _reservar(geral, {"agente": p["agente"], "id": str(p["id"]), "estado": "expirado", "quem": "vigia",
+                                  "titulo": p["titulo"], "texto": f"sem decisão em {int(validade)} h"})
+            except RuntimeError:
+                pass
+            continue
         out.append(p)
     ordem = {"dinheiro": 0, "producao": 1, "envio_externo": 2, "saude": 3, "interno": 4}
-    out.sort(key=lambda p: (p.get("prazo") or "9999", ordem.get(p["risco"], 9), p.get("criado_em", "")))
+
+    def vence(p):
+        d = _data(p.get("prazo")) or ((_data(p.get("criado_em")) or quando) + dt.timedelta(hours=48))
+        return d
+
+    out.sort(key=lambda p: (vence(p), ordem.get(p["risco"], 9), p.get("criado_em", "")))
     return out
 
 
 def resumo(geral):
-    """Contagem para o topo e para o aviso curto: {esperando, decididos_hoje}."""
+    """Contagem para o topo e para o aviso curto: {esperando, decididos_hoje, conferidos_hoje, falhas_hoje}."""
     hoje = agora().date().isoformat()
     dec = {(e["agente"], e["id"]) for e in eventos(geral)
-           if e.get("estado") in ("aprovado", "recusado") and str(e.get("em", "")).startswith(hoje)}
-    return {"esperando": len(pendentes(geral)), "decididos_hoje": len(dec)}
+           if e.get("estado") in ("aprovado", "executando", "recusado", "outra") and e.get("quem") != "vigia"
+           and str(e.get("em", "")).startswith(hoje)}
+    conf = [e for e in eventos(geral) if e.get("estado") == "conferido" and str(e.get("em", "")).startswith(hoje)]
+    return {"esperando": len(pendentes(geral)), "decididos_hoje": len(dec),
+            "conferidos_hoje": len(conf), "falhas_hoje": sum(1 for e in conf if e.get("resultado") == "falha")}
 
 
 def _achar(geral, agente, id_):
@@ -234,6 +263,11 @@ def para_pagina(geral, agentes, saude=()):
         q["midia"] = [{**m, "url": link(p, m)} for m in p.get("midia", [])]
         cfg = next((a for a in agentes if a["id"] == p["agente"]), {})
         q["agente_nome"] = cfg.get("nome") or p["agente"]
+        lemb = set(geral.get("aprovacao", {}).get("lembretes", ["ciente"]))
+        q["pendencia"] = p["proposta"]["acao"] in lemb and (not p.get("alternativa") or p["alternativa"]["acao"] in lemb) \
+            and p["risco"] != "saude"
+        q["lote"] = p.get("grupo") or "|".join([p["agente"], p["proposta"]["acao"], p["proposta"].get("detalhe", "")])
+
         q["departamento"] = p.get("departamento") or cfg.get("departamento") or cfg.get("area") or ""
         out.append(q)
     return out + list(saude)

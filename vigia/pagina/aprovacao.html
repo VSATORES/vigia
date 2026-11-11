@@ -141,15 +141,24 @@ svg{display:block}
 .pareceres:empty{display:none}.pareceres{display:grid;gap:6px;margin:-6px 0 14px}.pc{border-left:3px solid #3651B8;background:#E7ECF7;border-radius:0 8px 8px 0;padding:6px 10px}.pc b{font-size:12.5px}.pc .vd{font-size:11.5px;font-weight:700;margin-left:8px;padding:1px 7px;border-radius:5px;background:#fff;color:#3651B8}.pc p{font-size:13px;color:var(--tinta2);line-height:1.4;margin-top:2px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .slide.c1 .pc p{-webkit-line-clamp:1}
 @media(max-width:1440px){.etq .pergunta{display:none}.etq .op.leve kbd{display:none}.etq{gap:6px;padding:12px 14px}.etq .op{padding:9px 12px}.etq .op.leve{padding:9px 6px}}
+#gaveta{position:fixed;inset:0;z-index:55;background:#0b0f13cc;display:none;justify-content:flex-end}#gaveta.on{display:flex}
+#gaveta .g{width:min(560px,100%);height:100%;background:var(--azulejo);color:var(--tinta);overflow:auto;padding:22px 24px}
+#gaveta h3{font-size:22px;font-variation-settings:"wdth" 118;margin-bottom:4px}#gaveta .sub{color:var(--tinta3);font-size:13.5px;margin-bottom:16px}
+#gaveta .it{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:10px;box-shadow:0 0 0 1px var(--rejunte)}
+#gaveta .it b{display:block;font-size:14.5px}#gaveta .it p{font-size:13px;color:var(--tinta2);margin:4px 0 8px;white-space:pre-wrap;max-height:110px;overflow:auto}
+#gaveta .it .ac{display:flex;gap:8px;align-items:center}#gaveta .it .ac button,#gaveta .it .ac a{font-size:13px;font-weight:650;padding:6px 12px;border-radius:8px;background:var(--azulejo);color:var(--tinta);text-decoration:none}
+#gaveta .it .ac button.f{background:var(--tinta);color:#fff}#gaveta .fechar{float:right;font-size:14px;padding:6px 10px;border-radius:8px;background:#fff}
+#gaveta .lote-it{display:flex;gap:10px;align-items:flex-start}#gaveta .lote-it input{margin-top:4px;width:18px;height:18px}
 .problemas{position:fixed;left:24px;bottom:44px;z-index:20;font-size:12px;color:#F4C430}
 </style></head><body>
 <header class="top"><span class="marca">Vigia</span><nav class="filtros" id="filtros" aria-label="Filtrar por agente"></nav>
-<p class="contagem" id="contagem" aria-live="polite"></p><a class="painel-link" href="/painel">Painel dos agentes</a></header>
+<p class="contagem" id="contagem" aria-live="polite"></p><button class="painel-link" id="btn-pend">Pendências <b id="n-pend">0</b></button><a class="painel-link" href="/painel">Painel dos agentes</a></header>
 <div class="erro-api" id="erro" role="alert"></div>
 <main class="palco" aria-roledescription="carrossel" aria-label="Pedidos para aprovar"><div class="trilho" id="trilho"></div></main>
 <button class="seta e" id="ant" aria-label="Pedido anterior"></button><button class="seta d" id="prox" aria-label="Próximo pedido"></button>
 <footer class="rodape"><span><kbd>←</kbd><kbd>→</kbd>passar</span><span><kbd>1</kbd><kbd>2</kbd>escolher</span><span><kbd>O</kbd>outra ação</span><span><kbd>E</kbd>editar</span><span><kbd>R</kbd>recusar</span><span><kbd>L</kbd>depois</span><span><kbd>Espaço</kbd>ver o anexo inteiro</span></footer>
 <p class="problemas" id="problemas"></p>
+<div id="gaveta" role="dialog" aria-modal="true"><div class="g" id="gav"></div></div>
 <div class="aviso" id="aviso" role="status" aria-live="polite"><span id="aviso-t"></span><button id="desfazer">Desfazer</button></div>
 <div id="lb" role="dialog" aria-modal="true" aria-label="Anexo em tela cheia"><div class="lbt" id="lbt"></div><div class="area" id="lba"></div><div class="tiras" id="lbm"></div></div>
 <script>
@@ -165,7 +174,8 @@ const urlOk=u=>/^(https?:|\/midia\/|data:image\/)/.test(u||'')?u:'';
 const $=s=>document.querySelector(s);
 let ITENS=[],filtro=null,atual=0,pg={},pend=null,RES={esperando:0,decididos_hoje:0};
 const chave=p=>p.agente+'/'+p.id;
-const vis=()=>ITENS.filter(p=>!(pend&&pend.k===chave(p))&&(!filtro||(p.departamento||p.agente_nome||'')===filtro));
+const vis=()=>ITENS.filter(p=>!p.pendencia&&!(pend&&pend.k===chave(p))&&(!filtro||(p.departamento||p.agente_nome||'')===filtro));
+const pends=()=>ITENS.filter(p=>p.pendencia);
 async function api(caminho,corpo){const r=await fetch(caminho,{method:corpo?'POST':'GET',headers:{'X-Vigia-Token':API?API.token:'','Content-Type':'application/json'},body:corpo?JSON.stringify(corpo):undefined,keepalive:!!corpo});
  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.erro||('erro '+r.status));return j}
 function erro(t){const e=$('#erro');e.textContent=t;e.style.display=t?'block':'none'}
@@ -175,10 +185,10 @@ async function carregar(){if(!API){erro('Abra pelo endereço do Vigia (http://lo
   if(cur){const i=vis().findIndex(p=>chave(p)===chave(cur));atual=i>=0?i:Math.min(atual,vis().length-1)}render()}
  catch(e){erro('Não consegui ler os pedidos: '+e.message)}}
 const grupo=p=>p.departamento||p.agente_nome||'';
-function topo(){const nomes=[...new Set(ITENS.map(grupo))],n=a=>ITENS.filter(p=>grupo(p)===a&&!(pend&&pend.k===chave(p))).length,tot=ITENS.length-(pend?1:0);
+function topo(){const D=ITENS.filter(p=>!p.pendencia);const nomes=[...new Set(D.map(grupo))],n=a=>D.filter(p=>grupo(p)===a&&!(pend&&pend.k===chave(p))).length,tot=D.length-(pend?1:0);
  $('#filtros').innerHTML=`<button class="filtro" aria-pressed="${!filtro}" data-f="">Tudo<span class="n">${tot}</span></button>`+nomes.filter(a=>n(a)).map(a=>`<button class="filtro" aria-pressed="${filtro===a}" data-f="${esc(a)}">${esc(a)}<span class="n">${n(a)}</span></button>`).join('');
  $('#filtros').querySelectorAll('.filtro').forEach(b=>b.onclick=()=>{filtro=b.dataset.f||null;atual=0;render()});
- const L=vis();$('#contagem').innerHTML=L.length?`<strong>${atual+1} de ${L.length}</strong> esperando você · ${RES.decididos_hoje} decididos hoje`:`${RES.decididos_hoje} decididos hoje`;
+ const L=vis();const cf=RES.conferidos_hoje?` · ${RES.conferidos_hoje} conferidos${RES.falhas_hoje?` (${RES.falhas_hoje} não deram certo)`:''}`:'';$('#contagem').innerHTML=(L.length?`<strong>${atual+1} de ${L.length}</strong> esperando você · `:'')+`${RES.decididos_hoje} decididos hoje${cf}`;$('#n-pend').textContent=pends().length;
  $('#ant').disabled=atual<=0;$('#prox').disabled=atual>=L.length-1}
 function quando(s){if(!s)return'';const d=(Date.now()-new Date(s))/36e5;return d<1?'agora há pouco':d<24?`há ${Math.round(d)} h`:`há ${Math.round(d/24)} dia${Math.round(d/24)>1?'s':''}`}
 function thumb(m,grande){const u=urlOk(m.url);if((m.tipo||'imagem')==='imagem'&&u)return `<img src="${esc(u)}" alt="${esc(m.rotulo)}" loading="lazy">`;
@@ -213,7 +223,7 @@ function slide(p,i){const e=p.entrada||{},f=FONTE[e.fonte]||['#555','•',e.font
  <div class="etq" style="background-color:${ce[0]}"><span class="ilhos" aria-hidden="true" style="box-shadow:0 0 0 4px ${ce[1]},inset 0 2px 3px #000a"></span><span class="pergunta">Sua decisão</span>
  <button class="op principal" data-o="0"><kbd>1</kbd><span>${esc(pr.rotulo)}${pr.detalhe?`<small>${esc(pr.detalhe)}</small>`:''}</span></button>
  ${al?`<button class="op" data-o="1"><kbd>2</kbd><span>${esc(al.rotulo)}${al.detalhe?`<small>${esc(al.detalhe)}</small>`:''}</span></button>`:''}
- <span class="resto"><button class="op leve" data-x="outra"><kbd>O</kbd>Outra ação</button><button class="op leve" data-x="ed"><kbd>E</kbd>Editar o texto</button><button class="op leve rec" data-x="recusar"><kbd>R</kbd>Recusar</button><button class="op leve" data-x="adiar"><kbd>L</kbd>Depois</button></span></div>
+ ${(()=>{const n=ITENS.filter(x=>!x.pendencia&&x.lote===p.lote).length;return n>1?`<button class="op" data-x="lote"><kbd>⇧A</kbd><span>Aprovar os ${n} iguais<small>${esc(p.proposta.rotulo)}</small></span></button>`:''})()}<span class="resto"><button class="op leve" data-x="outra"><kbd>O</kbd>Outra ação</button><button class="op leve" data-x="ed"><kbd>E</kbd>Editar o texto</button><button class="op leve rec" data-x="recusar"><kbd>R</kbd>Recusar</button><button class="op leve" data-x="adiar"><kbd>L</kbd>Depois</button></span></div>
  </article></section>`}
 function render(){topo();const L=vis(),t=$('#trilho');
  if(!L.length){t.style.transform='none';t.innerHTML=`<div class="fim"><b>Fila limpa</b>Nada esperando você agora.<br>Os agentes avisam quando chegar algo novo.</div>`;return}
@@ -229,7 +239,7 @@ function liga(){document.querySelectorAll('.slot').forEach(s=>s.addEventListener
  document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{const[k,j]=b.dataset.m.split('|');pg[k]=+j;const p=porK(k);b.closest('.vis').outerHTML=visual(p);liga()});
  document.querySelectorAll('.slide').forEach(sl=>{const p=porK(sl.dataset.k);if(!p)return;
   sl.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>escolhe(p,+b.dataset.o));
-  sl.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{const x=b.dataset.x;x==='ed'?edita(p):x==='outra'?outra(p):decide(p,x)});
+  sl.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{const x=b.dataset.x;x==='ed'?edita(p):x==='outra'?outra(p):x==='lote'?lote(p):decide(p,x)});
   sl.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>saude(p,b.dataset.s))})}
 const sl=p=>document.querySelector(`.slide[data-k="${CSS.escape(chave(p))}"]`);
 function edita(p){if(p.risco==='saude')return;const s=sl(p),c=s.querySelector('.sai .corpo');if(!c){const t=s.querySelector('.sai textarea');guarda(p,t.value);render();return}
@@ -279,7 +289,24 @@ document.addEventListener('keydown',e=>{if(e.target.tagName==='TEXTAREA')return;
  if(e.key==='ArrowRight')vai(1);else if(e.key==='ArrowLeft')vai(-1);
  else if(p.risco==='saude'){if(k==='1')saude(p,'visto');else if(k==='2'&&(p.acoes||[]).includes('rodar'))saude(p,'rodar')}
  else if(k==='1')escolhe(p,0);else if(k==='2'&&p.alternativa)escolhe(p,1);
- else if(k==='o'){e.preventDefault();outra(p)}else if(k==='r')decide(p,'recusar');else if(k==='l')decide(p,'adiar');
+ else if(e.key==='A'&&e.shiftKey){lote(p)}else if(k==='o'){e.preventDefault();outra(p)}else if(k==='r')decide(p,'recusar');else if(k==='l')decide(p,'adiar');
  else if(k==='e'){e.preventDefault();edita(p)}else if(e.key===' '&&(p.midia||[]).length){e.preventDefault();abreLB(p,pg[chave(p)]||0)}});
-carregar();setInterval(()=>{if(!pend&&!document.querySelector('.sai textarea')&&!$('#lb').classList.contains('on'))carregar()},60000);
+
+function fechaGav(){$('#gaveta').classList.remove('on')}
+$('#gaveta').addEventListener('click',e=>{if(e.target.id==='gaveta')fechaGav()});
+function abrePend(){const P=pends();$('#gav').innerHTML=`<button class="fechar" onclick="fechaGav()">Fechar</button><h3>Pendências</h3><p class="sub">Lembretes dos agentes: não executam nada. Marque "Feito" quando resolver, ou abra a origem.</p>`+
+ (P.length?P.map(p=>`<div class="it" data-k="${esc(chave(p))}"><b>${esc(p.titulo)}</b><small style="color:var(--tinta3)">${esc(p.departamento||'')} · ${esc(p.agente_nome)} · ${quando(p.criado_em)}</small><p>${esc(p.proposta.previa||p.contexto||'')}</p><div class="ac"><button class="f" data-feito>Feito</button>${urlOk((p.entrada||{}).link)?`<a href="${esc(p.entrada.link)}" target="_blank" rel="noopener">Abrir a origem</a>`:''}</div></div>`).join(''):'<p>Nenhuma pendência.</p>');
+ $('#gav').querySelectorAll('[data-feito]').forEach(b=>b.onclick=async()=>{const it=b.closest('.it'),p=porK(it.dataset.k);b.disabled=true;
+  try{await api(`/api/pedido/${encodeURIComponent(p.agente)}/${encodeURIComponent(p.id)}/aprovar`,{opcao:0});ITENS=ITENS.filter(x=>x!==p);it.remove();topo()}catch(e){erro(e.message);b.disabled=false}});
+ $('#gaveta').classList.add('on')}
+$('#btn-pend').onclick=abrePend;
+function lote(p){const L=ITENS.filter(x=>!x.pendencia&&x.lote===p.lote);if(L.length<2)return;
+ $('#gav').innerHTML=`<button class="fechar" onclick="fechaGav()">Fechar</button><h3>Aprovar ${L.length} iguais</h3><p class="sub">${esc(p.proposta.rotulo)} · ${esc(p.agente_nome)}. Cada um sai com o próprio texto. Desmarque o que não quiser.</p>`+
+  L.map(x=>`<label class="it lote-it"><input type="checkbox" checked data-k="${esc(chave(x))}"><span><b>${esc(x.titulo)}</b><p>${esc(x.proposta.previa||'')}</p></span></label>`).join('')+
+  `<button class="op principal" id="lote-ok" style="width:100%;justify-content:center;margin-top:6px">Aprovar os marcados</button>`;
+ $('#lote-ok').onclick=async()=>{const ks=[...$('#gav').querySelectorAll('input:checked')].map(i=>i.dataset.k);$('#lote-ok').disabled=true;let ok=0,falha=[];
+  for(const k of ks){const x=porK(k);try{await api(`/api/pedido/${encodeURIComponent(x.agente)}/${encodeURIComponent(x.id)}/aprovar`,{opcao:0});ok++;ITENS=ITENS.filter(y=>y!==x)}catch(e){falha.push(x.titulo+': '+e.message)}}
+  RES.decididos_hoje+=ok;fechaGav();render();aviso(`Aprovados ${ok} de ${ks.length}${falha.length?' · '+falha.length+' com erro':''}`,false);if(falha.length)erro(falha.join(' | '))};
+ $('#gaveta').classList.add('on')}
+carregar();setInterval(()=>{if(!pend&&!document.querySelector('.sai textarea')&&!$('#lb').classList.contains('on')&&!$('#gaveta').classList.contains('on'))carregar()},60000);
 </script></body></html>

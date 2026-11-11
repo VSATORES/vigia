@@ -1,5 +1,13 @@
 # Mudanças
 
+## 2.4.0 — 11/11/2026
+- **Pendências separadas:** pedido que não executa nada (lembrete, `[aprovacao] lembretes`, padrão "ciente") sai dos slides e vai
+  para a gaveta "Pendências", com "Feito" e "Abrir a origem".
+- **Aprovar em lote** (Shift+A): pedidos iguais (mesmo agente, ação e detalhe, ou o mesmo `grupo`) numa lista com caixinhas.
+- **Ordem:** o que vence primeiro (prazo, ou criado + 48 h), depois o risco, depois quem espera há mais tempo.
+- **Pedido parado vence sozinho** (`[aprovacao] validade_horas`, padrão 72): vira "expirado" e volta para o agente.
+- Topo mostra conferidos e falhas do dia (o estado "conferido" vem de quem confere a execução).
+
 ## 2.2.0 — 11/11/2026
 - **Outra ação** (tecla O): quando nenhuma opção serve, você escreve o que quer; a decisão vai para o agente com o texto
   (`estado: "outra"` em decisoes.jsonl) e ele refaz na próxima rodada com um pedido novo.
