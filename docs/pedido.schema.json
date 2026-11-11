@@ -168,6 +168,31 @@
           ]
         }
       }
+    },
+    "departamento": {
+      "type": "string",
+      "description": "Departamento dono do assunto (preenchido pelo gravador)."
+    },
+    "parecer": {
+      "type": "object",
+      "required": [
+        "texto"
+      ],
+      "additionalProperties": false,
+      "description": "Parecer do agente: por que recomenda a proposta (até 2 frases) e a confiança.",
+      "properties": {
+        "texto": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "confianca": {
+          "enum": [
+            "alta",
+            "media",
+            "baixa"
+          ]
+        }
+      }
     }
   },
   "$defs": {

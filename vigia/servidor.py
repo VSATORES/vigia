@@ -59,7 +59,7 @@ def servir(geral, gerar, caminho_config):
         for it in d.get("itens", []):
             if it.get("st") in ("er", "nr", "late") and not it.get("visto"):
                 out.append({"id": "saude-" + it["k"], "agente": "_saude", "k": it["k"], "agente_nome": it.get("nome"),
-                            "risco": "saude", "titulo": f"{it.get('nome')}: {it.get('motivo')}",
+                            "risco": "saude", "departamento": "Saúde dos agentes", "titulo": f"{it.get('nome')}: {it.get('motivo')}",
                             "contexto": re.sub("<[^>]+>", "", it.get("acao") or "")[:400],
                             "acoes": it.get("acoes", []), "ult": it.get("ult"), "st": it.get("st")})
         return out
@@ -97,7 +97,7 @@ def servir(geral, gerar, caminho_config):
                 if not self._autorizado():
                     return self._json(403, {"erro": "sem permissão"})
                 try:
-                    return self._json(200, {"anexos": pedidos.anexos(geral, ma.group(1), ma.group(2))})
+                    return self._json(200, pedidos.anexos(geral, ma.group(1), ma.group(2)))
                 except LookupError as e:
                     return self._json(404, {"erro": str(e)})
                 except PermissionError as e:

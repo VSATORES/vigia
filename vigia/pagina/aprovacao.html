@@ -45,7 +45,7 @@ svg{display:block}
 .vis{background:#11161B;display:flex;flex-direction:column;min-height:0;min-width:0}
 .foto{flex:1;position:relative;min-height:0;overflow:hidden;display:block;width:100%;cursor:zoom-in}
 .foto>svg,.foto>img{width:100%;height:100%;object-fit:cover}
-.foto .legenda{position:absolute;left:16px;bottom:14px;font-size:13px;font-weight:600;color:#fff;background:#0b0f13b3;backdrop-filter:blur(8px);padding:5px 11px;border-radius:7px}
+.foto .legenda{position:absolute;left:16px;bottom:14px;font-size:13px;font-weight:600;color:#fff;background:#0b0f13b3;padding:5px 11px;border-radius:7px}
 .foto .legenda span{color:#ffffff99;font-weight:500;margin-left:6px;font-variant-numeric:tabular-nums}
 .risco{position:absolute;right:14px;top:14px;font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:7px;color:var(--tinta)}
 .tiras{display:flex;gap:8px;padding:10px 14px 12px;align-items:center;min-width:0}
@@ -138,6 +138,9 @@ svg{display:block}
 .carregando{position:absolute;inset:0;display:grid;place-items:center;color:#ffffffa0;font-size:14px}
 .vthumb{position:relative;display:block;width:100%;height:100%}.vthumb video{width:100%;height:100%;object-fit:cover;display:block;background:#000}.vthumb i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;color:#fff;font-size:28px;text-shadow:0 2px 10px #000a}.tira .vthumb i{font-size:14px}
 .etq .op{white-space:nowrap}.etq .op.leve{padding:10px 8px}
+.pareceres:empty{display:none}.pareceres{display:grid;gap:6px;margin:-6px 0 14px}.pc{border-left:3px solid #3651B8;background:#E7ECF7;border-radius:0 8px 8px 0;padding:6px 10px}.pc b{font-size:12.5px}.pc .vd{font-size:11.5px;font-weight:700;margin-left:8px;padding:1px 7px;border-radius:5px;background:#fff;color:#3651B8}.pc p{font-size:13px;color:var(--tinta2);line-height:1.4;margin-top:2px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.slide.c1 .pc p{-webkit-line-clamp:1}
+@media(max-width:1440px){.etq .pergunta{display:none}.etq .op.leve kbd{display:none}.etq{gap:6px;padding:12px 14px}.etq .op{padding:9px 12px}.etq .op.leve{padding:9px 6px}}
 .problemas{position:fixed;left:24px;bottom:44px;z-index:20;font-size:12px;color:#F4C430}
 </style></head><body>
 <header class="top"><span class="marca">Vigia</span><nav class="filtros" id="filtros" aria-label="Filtrar por agente"></nav>
@@ -162,23 +165,24 @@ const urlOk=u=>/^(https?:|\/midia\/|data:image\/)/.test(u||'')?u:'';
 const $=s=>document.querySelector(s);
 let ITENS=[],filtro=null,atual=0,pg={},pend=null,RES={esperando:0,decididos_hoje:0};
 const chave=p=>p.agente+'/'+p.id;
-const vis=()=>ITENS.filter(p=>!(pend&&pend.k===chave(p))&&(!filtro||p.agente_nome===filtro));
+const vis=()=>ITENS.filter(p=>!(pend&&pend.k===chave(p))&&(!filtro||(p.departamento||p.agente_nome||'')===filtro));
 async function api(caminho,corpo){const r=await fetch(caminho,{method:corpo?'POST':'GET',headers:{'X-Vigia-Token':API?API.token:'','Content-Type':'application/json'},body:corpo?JSON.stringify(corpo):undefined,keepalive:!!corpo});
  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.erro||('erro '+r.status));return j}
 function erro(t){const e=$('#erro');e.textContent=t;e.style.display=t?'block':'none'}
 async function carregar(){if(!API){erro('Abra pelo endereço do Vigia (http://localhost:8787) para ver e decidir os pedidos.');return}
- try{const j=await api('/api/pedidos');const cur=vis()[atual];ITENS=j.itens;RES=j.resumo;if(j.fontes)FONTE={...FONTE,...j.fontes};erro('');
+ try{const j=await api('/api/pedidos');const cur=vis()[atual];ITENS=j.itens;ITENS.forEach(aplicaAnx);RES=j.resumo;if(j.fontes)FONTE={...FONTE,...j.fontes};erro('');
   $('#problemas').textContent=j.problemas&&j.problemas.length?`${j.problemas.length} pedido(s) com problema no arquivo; veja o log do Vigia.`:'';
   if(cur){const i=vis().findIndex(p=>chave(p)===chave(cur));atual=i>=0?i:Math.min(atual,vis().length-1)}render()}
  catch(e){erro('Não consegui ler os pedidos: '+e.message)}}
-function topo(){const nomes=[...new Set(ITENS.map(p=>p.agente_nome))],n=a=>ITENS.filter(p=>p.agente_nome===a&&!(pend&&pend.k===chave(p))).length,tot=ITENS.length-(pend?1:0);
+const grupo=p=>p.departamento||p.agente_nome||'';
+function topo(){const nomes=[...new Set(ITENS.map(grupo))],n=a=>ITENS.filter(p=>grupo(p)===a&&!(pend&&pend.k===chave(p))).length,tot=ITENS.length-(pend?1:0);
  $('#filtros').innerHTML=`<button class="filtro" aria-pressed="${!filtro}" data-f="">Tudo<span class="n">${tot}</span></button>`+nomes.filter(a=>n(a)).map(a=>`<button class="filtro" aria-pressed="${filtro===a}" data-f="${esc(a)}">${esc(a)}<span class="n">${n(a)}</span></button>`).join('');
  $('#filtros').querySelectorAll('.filtro').forEach(b=>b.onclick=()=>{filtro=b.dataset.f||null;atual=0;render()});
  const L=vis();$('#contagem').innerHTML=L.length?`<strong>${atual+1} de ${L.length}</strong> esperando você · ${RES.decididos_hoje} decididos hoje`:`${RES.decididos_hoje} decididos hoje`;
  $('#ant').disabled=atual<=0;$('#prox').disabled=atual>=L.length-1}
 function quando(s){if(!s)return'';const d=(Date.now()-new Date(s))/36e5;return d<1?'agora há pouco':d<24?`há ${Math.round(d)} h`:`há ${Math.round(d/24)} dia${Math.round(d/24)>1?'s':''}`}
-function thumb(m){const u=urlOk(m.url);if((m.tipo||'imagem')==='imagem'&&u)return `<img src="${esc(u)}" alt="${esc(m.rotulo)}" loading="lazy">`;
- if(m.tipo==='video'&&u)return `<span class="vthumb"><video src="${esc(u)}#t=0.5" muted playsinline preload="metadata" aria-label="${esc(m.rotulo)}"></video><i aria-hidden="true">▶</i></span>`;
+function thumb(m,grande){const u=urlOk(m.url);if((m.tipo||'imagem')==='imagem'&&u)return `<img src="${esc(u)}" alt="${esc(m.rotulo)}" loading="lazy">`;
+ if(m.tipo==='video'&&u&&grande)return `<span class="vthumb"><video src="${esc(u)}#t=0.5" muted playsinline preload="metadata" aria-label="${esc(m.rotulo)}"></video><i aria-hidden="true">▶</i></span>`;
  return `<div class="doc-thumb"><div><span aria-hidden="true">${m.tipo==='pdf'?'▤':m.tipo==='video'?'▶':'▦'}</span>${esc(m.rotulo)}</div></div>`}
 function visual(p){const r=RISCO[p.risco]||RISCO.interno;
  if(p.risco==='saude')return `<div class="vis"><div class="semmidia"><div class="grande">${esc(p.ult||'—')}</div><div>Última rodada de <b>${esc(p.agente_nome)}</b></div><a href="/painel#agentes/${esc(p.k)}">Ver no painel dos agentes</a></div></div>`;
@@ -187,7 +191,7 @@ function visual(p){const r=RISCO[p.risco]||RISCO.interno;
  if(!M.length){const f=FONTE[(p.entrada||{}).fonte]||['#555','•',(p.entrada||{}).fonte||''];const lk=urlOk((p.entrada||{}).link);
   return `<div class="vis"><div class="semmidia"><div class="grande">${esc(f[2])}</div><div>${esc((p.entrada||{}).quem||'')}</div>${lk?`<a href="${esc(lk)}" target="_blank" rel="noopener">Abrir a origem</a>`:''}<span class="risco" style="position:static;align-self:flex-start;background:${r[1]}">${r[0]}</span></div></div>`}
  const i=Math.min(pg[chave(p)]||0,M.length-1),m=M[i];
- return `<div class="vis"><button class="foto" data-z="${esc(chave(p))}" aria-label="Ver ${esc(m.rotulo)} em tela cheia">${thumb(m)}<span class="legenda">${esc(m.rotulo)}${M.length>1?`<span>${i+1} de ${M.length}</span>`:''}</span><span class="risco" style="background:${r[1]}">${r[0]}</span></button>
+ return `<div class="vis"><button class="foto" data-z="${esc(chave(p))}" aria-label="Ver ${esc(m.rotulo)} em tela cheia">${thumb(m,true)}<span class="legenda">${esc(m.rotulo)}${M.length>1?`<span>${i+1} de ${M.length}</span>`:''}</span><span class="risco" style="background:${r[1]}">${r[0]}</span></button>
  ${M.length>1?`<div class="tiras">${M.slice(0,8).map((x,j)=>`<button class="tira" aria-current="${j===i}" aria-label="${esc(x.rotulo)}" data-m="${esc(chave(p))}|${j}">${thumb(x)}</button>`).join('')}${M.length>8?`<button class="tira mais" data-z="${esc(chave(p))}" aria-label="Ver todos os ${M.length} anexos">+${M.length-8}</button>`:''}</div>`:''}</div>`}
 function tinta(h,a){const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=x=>Math.round(x+(255-x)*a);return `rgb(${m(r)},${m(g)},${m(b)})`}
 function corEtq(p){const f=FONTE[(p.entrada||{}).fonte];if(f)return[tinta(f[0],.42),f[0]];const r={producao:'#D9661C',envio_externo:'#7D3C98',dinheiro:'#B3372D',interno:'#3651B8',saude:'#B3372D'}[p.risco]||'#C99A12';return[tinta(r,.42),r]}
@@ -201,8 +205,8 @@ function slide(p,i){const e=p.entrada||{},f=FONTE[e.fonte]||['#555','•',e.font
  const pr=p.proposta,al=p.alternativa;
  return `<section class="slot" data-i="${i}" aria-hidden="${i!==atual}"><article class="slide" data-k="${esc(chave(p))}"><div class="carimbo" aria-hidden="true"></div>
  ${visual(p)}
- <div class="txt"><p class="de"><span class="ico" style="background:${f[0]}" aria-hidden="true">${esc(f[1])}</span>${esc(p.agente_nome)}, via ${esc(f[2])}<time>${quando(p.criado_em)}</time></p>
- <h2>${esc(p.titulo)}</h2>${p.contexto?`<p class="ctx">${esc(p.contexto)}</p>`:''}
+ <div class="txt"><p class="de"><span class="ico" style="background:${f[0]}" aria-hidden="true">${esc(f[1])}</span>${p.departamento?`${esc(p.departamento)} · `:''}${esc(p.agente_nome)}, via ${esc(f[2])}<time>${quando(p.criado_em)}</time></p>
+ <h2>${esc(p.titulo)}</h2>${p.contexto?`<p class="ctx">${esc(p.contexto)}</p>`:''}${pareceres(p)}
  <div class="sai"><p class="para"><b>${esc(pr.destino||pr.rotulo)}</b>${p._editado?'<em>Editado por você</em>':''}</p><div class="corpo">${esc(p._texto??pr.previa)}</div></div>
  ${(p.fatos||[]).length?`<div class="fatos">${p.fatos.slice(0,4).map(n=>`<div class="fato"><b>${esc(n[0])}</b><span>${esc(n[1])}</span></div>`).join('')}</div>`:''}
  ${(p.historico||[]).length?`<div class="hist">${p.historico.slice(0,3).map(h=>`<time>${esc(h[0])}</time><span>${esc(h[1])}</span>`).join('')}</div>`:''}</div>
@@ -234,11 +238,17 @@ function edita(p){if(p.risco==='saude')return;const s=sl(p),c=s.querySelector('.
 function outra(p){const s=sl(p),box=s.querySelector('.sai');if(!box)return;if(box.dataset.outra){const t=box.querySelector('textarea');if(t.value.trim().length<5){t.focus();return}p._outra=t.value.trim();decide(p,'outra');return}
  box.dataset.outra='1';box.innerHTML=`<p class="para"><b>Outra ação: diga o que você quer que seja feito</b><em>Ctrl+Enter manda</em></p><textarea aria-label="Outra ação" placeholder="Ex.: Pergunte se o técnico volta amanhã e me traga a resposta…"></textarea>`;
  const t=box.querySelector('textarea');t.focus();t.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();render()}if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();outra(p)}}}
-const pedindo={};
-async function buscaAnexos(p){if(!p||!p.anexos||p._anx||pedindo[chave(p)])return;pedindo[chave(p)]=1;
- try{const j=await api(`/api/anexos/${encodeURIComponent(p.agente)}/${encodeURIComponent(p.id)}`);p.midia=[...(p.midia||[]),...j.anexos];p._anx=1;
-  const s=sl(p);if(s){const v=s.querySelector('.vis');if(v){v.outerHTML=visual(p);liga()}}}
- catch(e){p._anx=1;p._anxErro=e.message;const s=sl(p);if(s){const v=s.querySelector('.vis');if(v){v.outerHTML=visual(p);liga()}}}}
+const pedindo={},ANX={};
+function aplicaAnx(p){const a=ANX[chave(p)];if(!a||p._anx)return;if(a.erro){p._anxErro=a.erro}else{p.midia=[...(p.midia||[]),...(a.anexos||[])];p._pareceres=a.pareceres||[]}p._anx=1}
+function redesenha(p){const s=sl(p);if(!s)return;const v=s.querySelector('.vis');if(v)v.outerHTML=visual(p);const pc=s.querySelector('.pareceres');if(pc)pc.outerHTML=pareceres(p);liga();cabe()}
+async function buscaAnexos(p){if(!p||!p.anexos)return;if(ANX[chave(p)]){if(!p._anx){aplicaAnx(p);redesenha(p)}return}if(pedindo[chave(p)])return;pedindo[chave(p)]=1;
+ try{const j=await api(`/api/anexos/${encodeURIComponent(p.agente)}/${encodeURIComponent(p.id)}`);ANX[chave(p)]=Array.isArray(j.anexos)?j:{anexos:[],pareceres:[]}}
+ catch(e){ANX[chave(p)]={erro:e.message}}
+ delete pedindo[chave(p)];const atualP=ITENS.find(x=>chave(x)===chave(p));if(atualP){aplicaAnx(atualP);redesenha(atualP)}}
+function pareceres(p){const L=[];const cf={alta:'confiança alta',media:'confiança média',baixa:'confiança baixa'};
+ if(p.parecer&&p.parecer.texto)L.push(`<div class="pc"><b>${esc(p.agente_nome.split(' · ')[0])}</b><span class="vd">${esc(cf[p.parecer.confianca]||'recomenda')}</span><p>${esc(p.parecer.texto)}</p></div>`);
+ (p._pareceres||[]).forEach(x=>L.push(`<div class="pc"><b>${esc(x.quem)}</b>${x.veredito?`<span class="vd">${esc(x.veredito)}</span>`:''}<p>${esc(x.texto)}</p></div>`));
+ return `<div class="pareceres">${L.join('')}</div>`}
 function guarda(p,v){p._texto=v;p._editado=v!==p.proposta.previa}
 function escolhe(p,o){const t=sl(p).querySelector('.sai textarea');if(t)guarda(p,t.value);decide(p,'aprovar',o)}
 const ROT={aprovar:null,recusar:'Recusado',adiar:'Para depois',outra:'Outra ação'},COR={aprovar:'var(--liberado)',recusar:'var(--recusa)',adiar:'var(--espera)',outra:'#3651B8'};

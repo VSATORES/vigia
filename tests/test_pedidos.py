@@ -113,7 +113,7 @@ class TestOutraEAnexos(TestPedidos):
         cont = os.path.join(self.d, "chamadas")
         self.geral["aprovacao"] = {"resolvedores": {"teste": f"echo x >> {cont}; echo '[{{\"rotulo\":\"f\",\"url\":\"https://h/{{id}}.jpg\"}},{{\"rotulo\":\"ruim\",\"url\":\"file:///etc/passwd\"}}]'"}}
         self.grava(pedido(anexos={"de": "teste", "id": 42}))
-        a = pedidos.anexos(self.geral, "ag", "p1")
+        a = pedidos.anexos(self.geral, "ag", "p1")["anexos"]
         self.assertEqual([x["url"] for x in a], ["https://h/42.jpg"])  # link que não é http cai fora
         pedidos.anexos(self.geral, "ag", "p1")
         self.assertEqual(open(cont).read().count("x"), 1)  # segunda vez veio do cache
@@ -123,6 +123,15 @@ class TestOutraEAnexos(TestPedidos):
         self.grava(pedido(anexos={"de": "outro", "id": 1}))
         with self.assertRaises(PermissionError):
             pedidos.anexos(self.geral, "ag", "p1")
+
+
+class TestPareceres(TestPedidos):
+    def test_resolvedor_com_pareceres(self):
+        self.geral["aprovacao"] = {"resolvedores": {"t": "echo '{\"anexos\": [], \"pareceres\": [{\"quem\": \"Validador\", \"veredito\": \"inconclusiva\", \"texto\": \"6 de 14 sem prova\"}]}'"}}
+        self.grava(pedido(anexos={"de": "t", "id": 7}))
+        r = pedidos.anexos(self.geral, "ag", "p1")
+        self.assertEqual(r["pareceres"][0]["veredito"], "inconclusiva")
+        self.assertEqual(r["anexos"], [])
 
 
 class TestConfigExecutores(unittest.TestCase):

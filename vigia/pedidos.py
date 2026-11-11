@@ -96,6 +96,8 @@ def ler(geral):
         return [], []
     out, prob = [], []
     for arq in sorted(glob.glob(os.path.join(raiz, "*", "*.json"))):
+        if os.path.basename(os.path.dirname(arq)).startswith("_"):  # _substituidos etc.: fora da fila
+            continue
         try:
             p = json.load(open(arq, encoding="utf-8"))
         except (OSError, ValueError) as e:
@@ -232,6 +234,7 @@ def para_pagina(geral, agentes, saude=()):
         q["midia"] = [{**m, "url": link(p, m)} for m in p.get("midia", [])]
         cfg = next((a for a in agentes if a["id"] == p["agente"]), {})
         q["agente_nome"] = cfg.get("nome") or p["agente"]
+        q["departamento"] = p.get("departamento") or cfg.get("departamento") or cfg.get("area") or ""
         out.append(q)
     return out + list(saude)
 
@@ -247,7 +250,7 @@ def anexos(geral, agente, id_, ttl=6 * 3600):
     spec = p.get("anexos") or {}
     de, ref = str(spec.get("de", "")), str(spec.get("id", ""))
     if not de:
-        return []
+        return {"anexos": [], "pareceres": []}
     cmd = (geral.get("aprovacao", {}).get("resolvedores") or {}).get(de)
     if not cmd:
         raise PermissionError(f"resolvedor '{de}' não está em [aprovacao.resolvedores] do vigia.toml")
@@ -257,12 +260,19 @@ def anexos(geral, agente, id_, ttl=6 * 3600):
     os.makedirs(pasta, exist_ok=True)
     cache = os.path.join(pasta, f"{de}-{ref}.json")
     if os.path.exists(cache) and (dt.datetime.now().timestamp() - os.path.getmtime(cache)) < ttl:
-        return json.load(open(cache, encoding="utf-8"))
+        c = json.load(open(cache, encoding="utf-8"))
+        return c if isinstance(c, dict) else {"anexos": c, "pareceres": []}
     r = subprocess.run(["bash", "-c", cmd.replace("{id}", shlex.quote(ref))], capture_output=True, text=True,
                        timeout=90, cwd=geral["base"])
     if r.returncode != 0:
         raise RuntimeError((r.stderr or r.stdout).strip()[-300:] or "resolvedor falhou")
-    lista = json.loads(r.stdout or "[]")
+    bruto = json.loads(r.stdout or "[]")
+    # o resolvedor pode devolver só a lista de anexos ou {"anexos": [...], "pareceres": [...]}
+    lista = bruto.get("anexos", []) if isinstance(bruto, dict) else bruto
     lista = [m for m in lista if isinstance(m, dict) and re.match(r"^https?:", str(m.get("url", "")))][:40]
-    json.dump(lista, open(cache, "w", encoding="utf-8"), ensure_ascii=False)
-    return lista
+    par = bruto.get("pareceres", []) if isinstance(bruto, dict) else []
+    par = [{k: str(x.get(k, ""))[:600] for k in ("quem", "veredito", "texto")} | {"itens": x.get("itens", [])[:20]}
+           for x in par if isinstance(x, dict)][:4]
+    out = {"anexos": lista, "pareceres": par}
+    json.dump(out, open(cache, "w", encoding="utf-8"), ensure_ascii=False)
+    return out
