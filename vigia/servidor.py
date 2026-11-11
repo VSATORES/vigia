@@ -92,6 +92,16 @@ def servir(geral, gerar, caminho_config):
                 return self._json(200, {"itens": pedidos.para_pagina(geral, ags, saude()),
                                         "resumo": pedidos.resumo(geral), "problemas": prob[:20],
                                         "fontes": geral.get("aprovacao", {}).get("fontes", {})})
+            mq = re.fullmatch(r"/api/quadros/([\w.-]+)/([\w.-]+)/(\d+)", rota)
+            if mq:  # folha de quadros de um vídeo: devolve o endereço da imagem (servida por /midia)
+                if not self._autorizado():
+                    return self._json(403, {"erro": "sem permissão"})
+                try:
+                    return self._json(200, {"url": pedidos.folha_quadros(geral, mq.group(1), mq.group(2), mq.group(3))})
+                except LookupError as e:
+                    return self._json(404, {"erro": str(e)})
+                except Exception as e:  # noqa: BLE001
+                    return self._json(502, {"erro": str(e)[:200]})
             ma = re.fullmatch(r"/api/anexos/([\w.-]+)/([\w.-]+)", rota)
             if ma:
                 if not self._autorizado():

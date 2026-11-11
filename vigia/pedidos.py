@@ -310,3 +310,55 @@ def anexos(geral, agente, id_, ttl=6 * 3600):
     out = {"anexos": lista, "pareceres": par}
     json.dump(out, open(cache, "w", encoding="utf-8"), ensure_ascii=False)
     return out
+
+
+def folha_quadros(geral, agente, id_, idx, n=8, largura=360):
+    """Folha com n quadros de um vídeo anexo (JPEG), para ver o vídeo sem tocar (não depende da placa de vídeo).
+    Grava em <pedidos>/<agente>/_quadros/<hash>.jpg e devolve o endereço /midia/... (servido pela rota de anexos).
+    Usa ffprobe/ffmpeg pulando direto no link (sem baixar o vídeo inteiro) e Pillow."""
+    import hashlib, shutil, tempfile
+    from PIL import Image, ImageDraw
+    an = anexos(geral, agente, id_)["anexos"]
+    m = an[int(idx)] if 0 <= int(idx) < len(an) else None
+    if not m or m.get("tipo") != "video":
+        raise LookupError("anexo não é vídeo")
+    url = m["url"]
+    nome = hashlib.sha1(url.split("?")[0].encode()).hexdigest()[:16] + ".jpg"
+    pasta = os.path.join(geral["pedidos"], agente, "_quadros")
+    os.makedirs(pasta, exist_ok=True)
+    destino = os.path.join(pasta, nome)
+    rota = f"/midia/{agente}/_quadros/{nome}"
+    if os.path.exists(destino):
+        return rota
+    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+        raise RuntimeError("ffmpeg não instalado")
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", url],
+                       capture_output=True, text=True, timeout=60)
+    dur = float((r.stdout or "0").strip() or 0) or 1.0
+    tmp = tempfile.mkdtemp()
+    try:
+        quadros = []
+        for k in range(n):
+            t = dur * (k + 0.5) / n
+            out = os.path.join(tmp, f"{k}.jpg")
+            subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{t:.2f}", "-i", url, "-frames:v", "1",
+                            "-vf", f"scale={largura}:-2", "-q:v", "4", "-y", out], capture_output=True, timeout=60)
+            if os.path.exists(out):
+                quadros.append((t, Image.open(out).convert("RGB")))
+        if not quadros:
+            raise RuntimeError("não consegui tirar quadros do vídeo")
+        w, h = quadros[0][1].size
+        cols = 4 if len(quadros) > 4 else len(quadros)
+        rows = (len(quadros) + cols - 1) // cols
+        folha = Image.new("RGB", (cols * w, rows * h), (17, 22, 27))
+        d = ImageDraw.Draw(folha)
+        for i, (t, im) in enumerate(quadros):
+            x, y = (i % cols) * w, (i // cols) * h
+            folha.paste(im.resize((w, h)), (x, y))
+            d.rectangle([x + 6, y + 6, x + 62, y + 26], fill=(0, 0, 0))
+            d.text((x + 11, y + 10), f"{int(t // 60)}:{int(t % 60):02d}", fill=(255, 255, 255))
+        folha.save(destino + ".tmp.jpg", "JPEG", quality=82)
+        os.replace(destino + ".tmp.jpg", destino)
+        return rota
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)

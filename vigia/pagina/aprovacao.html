@@ -106,7 +106,7 @@ svg{display:block}
 .graf{position:relative}.graf .tt{position:absolute;pointer-events:none;background:#fff;color:var(--tinta);font-size:12.5px;font-weight:600;padding:4px 8px;border-radius:6px;transform:translate(-50%,-115%);white-space:nowrap;opacity:0;transition:opacity 100ms ease;font-variant-numeric:tabular-nums;box-shadow:0 4px 14px #0004}
 .graf .fonte{font-size:12px;color:#ffffff80;margin-top:6px}
 /* tela cheia */
-#lb{position:fixed;inset:0;z-index:50;background:#0b0f13f0;display:none;flex-direction:column;overscroll-behavior:contain}
+#lb{position:fixed;inset:0;z-index:50;background:#0b0f13;display:none;flex-direction:column;overscroll-behavior:contain}
 #lb.on{display:flex}
 #lb .lbt{display:flex;align-items:center;gap:12px;padding:16px 22px;font-size:15px;font-weight:600}#lb .lbt span{color:#ffffff8a;font-weight:500}
 #lb .x{margin-left:auto;width:40px;height:40px;border-radius:50%;background:#ffffff1f;display:grid;place-items:center}
@@ -149,6 +149,8 @@ svg{display:block}
 #gaveta .it .ac{display:flex;gap:8px;align-items:center}#gaveta .it .ac button,#gaveta .it .ac a{font-size:13px;font-weight:650;padding:6px 12px;border-radius:8px;background:var(--azulejo);color:var(--tinta);text-decoration:none}
 #gaveta .it .ac button.f{background:var(--tinta);color:#fff}#gaveta .fechar{float:right;font-size:14px;padding:6px 10px;border-radius:8px;background:#fff}
 #gaveta .lote-it{display:flex;gap:10px;align-items:flex-start}#gaveta .lote-it input{margin-top:4px;width:18px;height:18px}
+.qd-img{width:100%;height:100%;object-fit:contain;background:#0b0f13;display:block}.qd-wait{position:absolute;inset:0;display:grid;place-items:center;color:#ffffffa0;font-size:14px}
+.lbv{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:100%;max-height:100%}.lbv .qd-img{max-height:calc(100vh - 220px);width:auto;max-width:100%;border-radius:12px}
 .problemas{position:fixed;left:24px;bottom:44px;z-index:20;font-size:12px;color:#F4C430}
 </style></head><body>
 <header class="top"><span class="marca">Vigia</span><nav class="filtros" id="filtros" aria-label="Filtrar por agente"></nav>
@@ -201,7 +203,7 @@ function visual(p){const r=RISCO[p.risco]||RISCO.interno;
  if(!M.length){const f=FONTE[(p.entrada||{}).fonte]||['#555','•',(p.entrada||{}).fonte||''];const lk=urlOk((p.entrada||{}).link);
   return `<div class="vis"><div class="semmidia"><div class="grande">${esc(f[2])}</div><div>${esc((p.entrada||{}).quem||'')}</div>${lk?`<a href="${esc(lk)}" target="_blank" rel="noopener">Abrir a origem</a>`:''}<span class="risco" style="position:static;align-self:flex-start;background:${r[1]}">${r[0]}</span></div></div>`}
  const i=Math.min(pg[chave(p)]||0,M.length-1),m=M[i];
- return `<div class="vis"><button class="foto" data-z="${esc(chave(p))}" aria-label="Ver ${esc(m.rotulo)} em tela cheia">${thumb(m,true)}<span class="legenda">${esc(m.rotulo)}${M.length>1?`<span>${i+1} de ${M.length}</span>`:''}</span><span class="risco" style="background:${r[1]}">${r[0]}</span></button>
+ return `<div class="vis"><button class="foto" data-z="${esc(chave(p))}" aria-label="Ver ${esc(m.rotulo)} em tela cheia">${m.tipo==='video'?quadrosImg(p,i):thumb(m,true)}<span class="legenda">${esc(m.rotulo)}${M.length>1?`<span>${i+1} de ${M.length}</span>`:''}</span><span class="risco" style="background:${r[1]}">${r[0]}</span></button>
  ${M.length>1?`<div class="tiras">${M.slice(0,8).map((x,j)=>`<button class="tira" aria-current="${j===i}" aria-label="${esc(x.rotulo)}" data-m="${esc(chave(p))}|${j}">${thumb(x)}</button>`).join('')}${M.length>8?`<button class="tira mais" data-z="${esc(chave(p))}" aria-label="Ver todos os ${M.length} anexos">+${M.length-8}</button>`:''}</div>`:''}</div>`}
 function tinta(h,a){const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=x=>Math.round(x+(255-x)*a);return `rgb(${m(r)},${m(g)},${m(b)})`}
 function corEtq(p){const f=FONTE[(p.entrada||{}).fonte];if(f)return[tinta(f[0],.42),f[0]];const r={producao:'#D9661C',envio_externo:'#7D3C98',dinheiro:'#B3372D',interno:'#3651B8',saude:'#B3372D'}[p.risco]||'#C99A12';return[tinta(r,.42),r]}
@@ -276,7 +278,7 @@ $('#desfazer').onclick=()=>{if(!pend)return;clearTimeout(pend.t);const k=pend.k;
 addEventListener('beforeunload',()=>{if(pend)envia()});
 let lbP=null,lbI=0,lbVolta=null;function abreLB(p,i){if(!p||!(p.midia||[]).length)return;lbP=p;lbI=i;lbVolta=document.activeElement;$('#lb').classList.add('on');lb();$('#lb .x').focus()}
 function lb(){const M=lbP.midia,m=M[lbI],u=urlOk(m.url);$('#lbt').innerHTML=`${esc(m.rotulo)} <span>${esc(lbP.agente_nome)}</span>${u?`<a class="painel-link" href="${esc(u)}" target="_blank" rel="noopener">Abrir em outra aba</a>`:''}<button class="x" aria-label="Fechar" onclick="fechaLB()">${I.x}</button>`;
- let h=!u?'<p>Anexo sem endereço válido.</p>':(m.tipo||'imagem')==='imagem'?`<img src="${esc(u)}" alt="${esc(m.rotulo)}">`:m.tipo==='video'?`<video src="${esc(u)}" controls style="max-width:100%;max-height:100%;border-radius:12px"></video>`:`<iframe src="${esc(u)}" title="${esc(m.rotulo)}"></iframe>`;
+ let h=!u?'<p>Anexo sem endereço válido.</p>':(m.tipo||'imagem')==='imagem'?`<img src="${esc(u)}" alt="${esc(m.rotulo)}">`:m.tipo==='video'?`<div class="lbv">${quadrosImg(lbP,lbI)}<button class="op principal" onclick="this.parentNode.innerHTML='<video src=&quot;${esc(u)}&quot; controls autoplay style=&quot;max-width:100%;max-height:100%;border-radius:12px&quot;></video>'">▶ Tocar o vídeo</button></div>`:`<iframe src="${esc(u)}" title="${esc(m.rotulo)}"></iframe>`;
  $('#lba').innerHTML=h+(M.length>1?`<button class="nv e" aria-label="Anexo anterior" onclick="lbI=(lbI-1+lbP.midia.length)%lbP.midia.length;lb()">${I.l}</button><button class="nv d" aria-label="Próximo anexo" onclick="lbI=(lbI+1)%lbP.midia.length;lb()">${I.r}</button>`:'');
  $('#lbm').innerHTML=M.length>1?M.map((x,j)=>`<button class="tira" aria-current="${j===lbI}" aria-label="${esc(x.rotulo)}" onclick="lbI=${j};lb()">${thumb(x)}</button>`).join(''):''}
 function fechaLB(){$('#lb').classList.remove('on');lbVolta&&lbVolta.focus()}
@@ -308,5 +310,12 @@ function lote(p){const L=ITENS.filter(x=>!x.pendencia&&x.lote===p.lote);if(L.len
   for(const k of ks){const x=porK(k);try{await api(`/api/pedido/${encodeURIComponent(x.agente)}/${encodeURIComponent(x.id)}/aprovar`,{opcao:0});ok++;ITENS=ITENS.filter(y=>y!==x)}catch(e){falha.push(x.titulo+': '+e.message)}}
   RES.decididos_hoje+=ok;fechaGav();render();aviso(`Aprovados ${ok} de ${ks.length}${falha.length?' · '+falha.length+' com erro':''}`,false);if(falha.length)erro(falha.join(' | '))};
  $('#gaveta').classList.add('on')}
+
+const QD={};
+function quadrosImg(p,i){const k=chave(p)+'|'+i;const u=QD[k];return u&&u!=='erro'&&u!=='…'?`<img class="qd-img" src="${esc(u)}" alt="8 quadros do vídeo">`:`<span class="qd-wait" data-q="${esc(k)}">${u==='erro'?'Não consegui montar os quadros: use Tocar o vídeo':'Montando os quadros do vídeo…'}</span>`}
+async function carregaQuadros(){for(const el of document.querySelectorAll('[data-q]')){const k=el.dataset.q;if(QD[k])continue;QD[k]='…';const[ck,i]=k.split('|');const[ag,...rest]=ck.split('/');const id=rest.join('/');
+ try{const j=await api(`/api/quadros/${encodeURIComponent(ag)}/${encodeURIComponent(id)}/${i}`);QD[k]=j.url}catch(e){QD[k]='erro'}
+ document.querySelectorAll(`[data-q="${CSS.escape(k)}"]`).forEach(x=>{x.outerHTML=QD[k]==='erro'?'<span class="qd-wait">Não consegui montar os quadros: use Tocar o vídeo</span>':`<img class="qd-img" src="${esc(QD[k])}" alt="8 quadros do vídeo">`})}}
+setInterval(()=>{if(document.querySelector('[data-q]'))carregaQuadros()},1500);
 carregar();setInterval(()=>{if(!pend&&!document.querySelector('.sai textarea')&&!$('#lb').classList.contains('on')&&!$('#gaveta').classList.contains('on'))carregar()},60000);
 </script></body></html>
