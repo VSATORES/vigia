@@ -15,3 +15,7 @@ por_dia = "SELECT dia, n, erros, humano FROM revisor"
 eventos = "SELECT quando, ok, texto FROM revisor_eventos"
 [flag]
 chave = "flag_revisor"
+
+# Ações que o Vigia pode executar depois do Aprovar (demo: só registra a prévia)
+[executores]
+publicar = "python3 -c \"import json,sys; p=json.load(open(sys.argv[1])); print('publicado:', p['executar']['previa'])\" {pedido}"

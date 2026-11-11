@@ -1,6 +1,10 @@
 """Serve o painel em http://127.0.0.1:<porta> e recebe as ações da página.
 
-GET  /                         página (gerada em segundo plano quando passa de 60 s)
+GET  /                         aba Aprovação (um slide por pedido; é a tela principal)
+GET  /painel                   painel dos agentes (gerado em segundo plano quando passa de 60 s)
+GET  /api/pedidos              pedidos pendentes + cartões de saúde dos agentes
+POST /api/pedido/<ag>/<id>/<d> aprovar | recusar | adiar  (corpo: {"opcao":0|1, "texto":"...", "horas":1})
+GET  /midia/<ag>/<arquivo>     anexo local do pedido (só dentro de pedidos/<ag>/)
 GET  /api/execucoes/<id>       últimas execuções do item (com a saída, para o log ao vivo)
 POST /api/<acao>/<id>          rodar | investigar | visto | pausar | retomar
 As rotas /api exigem o cabeçalho X-Vigia-Token (chave aleatória desta instalação, em dados/token) e só
@@ -22,7 +26,8 @@ def token(geral):
 
 
 def servir(geral, gerar, caminho_config):
-    from . import acoes, config, estado
+    from . import acoes, config, estado, pedidos
+    import mimetypes
     saida, porta = geral["saida"], geral["porta"]
     tok = token(geral)
 
@@ -44,6 +49,20 @@ def servir(geral, gerar, caminho_config):
         except (OSError, ValueError, StopIteration):
             return {}
 
+    def saude():
+        try:
+            d = json.load(open(os.path.join(geral["dados"], "ultimo.json"), encoding="utf-8"))
+        except (OSError, ValueError):
+            return []
+        out = []
+        for it in d.get("itens", []):
+            if it.get("st") in ("er", "nr", "late") and not it.get("visto"):
+                out.append({"id": "saude-" + it["k"], "agente": "_saude", "k": it["k"], "agente_nome": it.get("nome"),
+                            "risco": "saude", "titulo": f"{it.get('nome')}: {it.get('motivo')}",
+                            "contexto": re.sub("<[^>]+>", "", it.get("acao") or "")[:400],
+                            "acoes": it.get("acoes", []), "ult": it.get("ult"), "st": it.get("st")})
+        return out
+
     class H(http.server.BaseHTTPRequestHandler):
         def _json(self, codigo, obj):
             corpo = json.dumps(obj, ensure_ascii=False, default=str).encode()
@@ -64,7 +83,39 @@ def servir(geral, gerar, caminho_config):
                 if not self._autorizado():
                     return self._json(403, {"erro": "sem permissão"})
                 return self._json(200, {"execucoes": acoes.execucoes(geral, m.group(1), 5)})
-            if rota not in ("/", "/index.html"):
+            if rota == "/api/pedidos":
+                if not self._autorizado():
+                    return self._json(403, {"erro": "sem permissão"})
+                _, ags, _ = config.carregar(caminho_config)
+                _, prob = pedidos.ler(geral)
+                return self._json(200, {"itens": pedidos.para_pagina(geral, ags, saude()),
+                                        "resumo": pedidos.resumo(geral), "problemas": prob[:20],
+                                        "fontes": geral.get("aprovacao", {}).get("fontes", {})})
+            m = re.fullmatch(r"/midia/([\w.-]+)/([\w./-]+)", rota)
+            if m:
+                arq = pedidos.midia_segura(geral, m.group(1), unquote(m.group(2)))
+                if not arq:
+                    self.send_response(404)
+                    self.end_headers()
+                    return
+                corpo = open(arq, "rb").read()
+                self.send_response(200)
+                self.send_header("Content-Type", mimetypes.guess_type(arq)[0] or "application/octet-stream")
+                self.send_header("Cache-Control", "private, max-age=300")
+                self.end_headers()
+                self.wfile.write(corpo)
+                return
+            if rota in ("/", "/aprovacao"):
+                html = open(os.path.join(os.path.dirname(__file__), "pagina", "aprovacao.html"), encoding="utf-8").read()
+                html = html.replace("const API=null;", "const API=" + json.dumps({"token": tok}) + ";", 1)
+                corpo = html.encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(corpo)
+                return
+            if rota not in ("/painel", "/index.html"):
                 self.send_response(404)
                 self.end_headers()
                 return
@@ -86,6 +137,26 @@ def servir(geral, gerar, caminho_config):
             self.wfile.write(corpo)
 
         def do_POST(self):
+            mp = re.fullmatch(r"/api/pedido/([\w.-]+)/([\w.-]+)/(aprovar|recusar|adiar)", self.path.split("?")[0])
+            if mp:
+                if not self._autorizado():
+                    return self._json(403, {"erro": "sem permissão"})
+                tam = int(self.headers.get("Content-Length") or 0)
+                try:
+                    corpo = json.loads(self.rfile.read(tam) or b"{}") if tam else {}
+                except ValueError:
+                    corpo = {}
+                _, ags, _ = config.carregar(caminho_config)
+                try:
+                    ev = pedidos.decidir(geral, ags, mp.group(1), mp.group(2), mp.group(3), corpo.get("opcao", 0),
+                                         corpo.get("texto"), corpo.get("horas", 1))
+                except LookupError as e:
+                    return self._json(404, {"erro": str(e)})
+                except PermissionError as e:
+                    return self._json(403, {"erro": str(e)})
+                except (RuntimeError, ValueError) as e:
+                    return self._json(409, {"erro": str(e)})
+                return self._json(200, {"ok": True, "evento": ev})
             m = re.fullmatch(r"/api/(rodar|investigar|visto|pausar|retomar)/([\w.-]+)", self.path.split("?")[0])
             if not m:
                 return self._json(404, {"erro": "rota desconhecida"})

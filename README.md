@@ -10,6 +10,26 @@ estão rodando — e, com um clique, o que cada um fez, quando falhou e por quê
 - Honesto por padrão: **ausência de sinal nunca é verde**; fonte fora do ar aparece como falha;
   dia em que o computador estava desligado aparece hachurado e não conta na meta.
 
+## Aba Aprovação (2.1)
+
+Rodando `vigia servir`, o endereço principal é a **aba Aprovação**: um slide por decisão que os seus agentes
+prepararam. O agente nunca executa; ele só grava um pedido, e o Vigia executa depois do seu clique.
+
+```json
+// pedidos/<agente>/<id>.json  (contrato completo em docs/pedido.schema.json)
+{"id": "relatorio-0412", "agente": "revisor", "titulo": "Publicar o relatório de novembro?", "risco": "envio_externo",
+ "proposta": {"acao": "publicar", "rotulo": "Publicar", "destino": "Canal do time", "previa": "Relatório publicado."}}
+```
+
+```toml
+# agentes.d/revisor.toml — só o que estiver aqui pode ser executado
+[executores]
+publicar = "/caminho/publicar.py {pedido}"     # recebe o arquivo do pedido, com o texto editado se houver
+```
+
+Atalhos: ← → passar · 1 / 2 escolher · E editar · R recusar · L depois · Espaço ver o anexo inteiro.
+Cada decisão fica em `dados/decisoes.jsonl` (aprovado, recusado, adiado, executado, falhou).
+
 ## Estados
 
 | Item agora | Quando |

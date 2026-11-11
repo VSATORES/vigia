@@ -1,0 +1,7 @@
+{"id": "backup-reenvio", "agente": "revisor", "criado_em": "2026-11-11T07:05:00",
+ "entrada": {"fonte": "vigia", "quem": "Backup noturno"},
+ "titulo": "O backup noturno falhou duas vezes. Pedir ao fornecedor para checar o disco?",
+ "contexto": "As duas últimas rodadas terminaram com erro de espaço. A mensagem abaixo vai para o suporte do fornecedor.",
+ "risco": "envio_externo",
+ "fatos": [["2", "falhas seguidas"], ["98%", "disco usado"], ["7 dias", "sem backup completo"]],
+ "proposta": {"acao": "publicar", "rotulo": "Enviar ao fornecedor", "destino": "E-mail do suporte do fornecedor", "previa": "Olá! Nosso backup noturno falhou duas vezes por falta de espaço (disco em 98%). Podem verificar o volume, por favor?"}}

@@ -55,6 +55,8 @@ def carregar(caminho):
         "dados": _abs(base, g.get("dados", "dados")),
         "notificar": g.get("notificar", {}),
         "claude": g.get("claude", "claude"),
+        "pedidos": _abs(base, g.get("pedidos", "pedidos")),
+        "aprovacao": g.get("aprovacao", {}),
     }
     if not 0 < geral["meta"] <= 1:
         erros.append(f"vigia.toml: meta deve estar entre 0 e 1 (ex.: 0.95), veio {geral['meta']}")
@@ -118,6 +120,17 @@ def carregar(caminho):
             erros.append(f"{nome}: acoes.rodar vazio")
         elif ac.get("instrucoes"):
             ac["instrucoes"] = _abs(base, ac["instrucoes"])
+        ex = a.get("executores", {})
+        if ex and not isinstance(ex, dict):
+            erros.append(f"{nome}: [executores] precisa ser uma seção (nome = \"comando {{pedido}}\")")
+        else:
+            for k, v in ex.items():
+                if not re.match(r"^[a-z0-9_]+$", k):
+                    erros.append(f"{nome}: executores.{k}: use só minúsculas, números e _")
+                if not str(v).strip():
+                    erros.append(f"{nome}: executores.{k} vazio")
+                elif "{pedido}" not in str(v):
+                    erros.append(f"{nome}: executores.{k} precisa receber o arquivo do pedido com {{pedido}}")
         if a.get("fonte") == "sql":
             s = a.get("sql", {})
             if not s.get("conexao"):

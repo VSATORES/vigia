@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pedido.schema.json",
+  "title": "Pedido para a aba Aprovação do Vigia",
+  "description": "Um arquivo por decisão, em pedidos/<agente>/<id>.json. O agente escreve e nunca executa. O estado (pendente, aprovado, recusado, adiado, executado, falhou) fica no decisoes.jsonl do Vigia, não aqui.",
+  "type": "object",
+  "required": [
+    "id",
+    "agente",
+    "criado_em",
+    "entrada",
+    "titulo",
+    "risco",
+    "proposta"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]{3,80}$",
+      "description": "Único dentro do agente. Repetir o id = mesmo pedido (não duplica)."
+    },
+    "agente": {
+      "type": "string",
+      "description": "id do agente no Vigia (nome do .toml em agentes.d)."
+    },
+    "criado_em": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "prazo": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "entrada": {
+      "type": "object",
+      "required": [
+        "fonte"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fonte": {
+          "type": "string",
+          "description": "De onde veio (ex.: slack, gmail, suporte, doc, vigia). O ícone de cada fonte vem de [aprovacao.fontes] no vigia.toml."
+        },
+        "link": {
+          "type": "string"
+        },
+        "quem": {
+          "type": "string",
+          "description": "Quem originou (pessoa, área, sistema). Sem telefone, documento ou e-mail."
+        }
+      }
+    },
+    "titulo": {
+      "type": "string",
+      "maxLength": 110,
+      "description": "A decisão em uma frase, de preferência em pergunta."
+    },
+    "contexto": {
+      "type": "string",
+      "maxLength": 400
+    },
+    "risco": {
+      "enum": [
+        "producao",
+        "envio_externo",
+        "dinheiro",
+        "interno",
+        "saude"
+      ]
+    },
+    "midia": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "rotulo",
+          "url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "rotulo": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "tipo": {
+            "enum": [
+              "imagem",
+              "pdf",
+              "pagina",
+              "video"
+            ]
+          }
+        }
+      }
+    },
+    "fatos": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "historico": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "proposta": {
+      "$ref": "#/$defs/acao"
+    },
+    "alternativa": {
+      "$ref": "#/$defs/acao"
+    },
+    "grupo": {
+      "type": "string"
+    },
+    "como": {
+      "enum": [
+        "agente",
+        "pessoa"
+      ],
+      "default": "agente",
+      "description": "pessoa = sai com o nome do dono (só depois do Aprovar)."
+    }
+  },
+  "$defs": {
+    "acao": {
+      "type": "object",
+      "required": [
+        "acao",
+        "rotulo",
+        "previa"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "acao": {
+          "type": "string",
+          "description": "Nome de um executor declarado em [executores] no toml do agente."
+        },
+        "rotulo": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Texto do botão (ex.: Publicar)."
+        },
+        "detalhe": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "destino": {
+          "type": "string",
+          "description": "Para onde vai (ex.: Canal do time)."
+        },
+        "previa": {
+          "type": "string",
+          "description": "Texto exato que vai sair, ou a mudança de estado."
+        },
+        "parametros": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

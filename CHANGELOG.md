@@ -1,5 +1,18 @@
 # Mudanças
 
+## 2.1.0 — 11/11/2026
+- **Aba Aprovação, a tela principal** (`/` no `vigia servir`; o painel dos agentes foi para `/painel`). Um slide por
+  decisão, passando para o lado: anexo grande à esquerda (imagem, PDF, página; Espaço abre em tela cheia), à direita a
+  pergunta, o texto exato que vai sair e para onde, até 4 números e a linha do tempo; embaixo a etiqueta "Sua decisão"
+  com 1 (proposta), 2 (alternativa), Editar, Recusar e Depois. Cada slide se ajusta para caber sem rolagem.
+- **Pedidos:** o agente grava `pedidos/<agente>/<id>.json` (contrato em `docs/pedido.schema.json`) e nunca executa.
+  Depois do Aprovar, o Vigia roda **só** o executor declarado em `[executores]` no toml do agente, recebendo o arquivo do
+  pedido (com o texto editado, se houver). Cada evento vai para `dados/decisoes.jsonl`; um pedido não executa duas vezes.
+- "Desfazer" por 5 segundos antes de a decisão ir para o servidor. "Depois" esconde por 1 hora.
+- Agente quebrado, atrasado ou sem rodar também aparece como slide (Já vi · Rodar agora · Investigar).
+- Ícones das fontes configuráveis em `[aprovacao.fontes]` no vigia.toml.
+- Acessibilidade: foco visível, nomes nos botões só de ícone, respeito a "reduzir movimento".
+
 ## 2.0.0 — 10/11/2026
 - **Comandar, não só olhar.** No painel aberto em `vigia servir` (localhost), cada item ganha botões:
   **Rodar agora** (o comando declarado no toml, nunca comando livre), **Investigar com Claude** (diagnóstico

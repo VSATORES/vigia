@@ -1,0 +1,10 @@
+{"id": "relatorio-0412", "agente": "revisor", "criado_em": "2026-11-11T09:30:00", "prazo": "2026-11-11T18:00:00",
+ "entrada": {"fonte": "doc", "quem": "Revisor de relatórios"},
+ "titulo": "Relatório de novembro conferido. Publicar para o time?",
+ "contexto": "O revisor conferiu os totais com a planilha de origem e achou tudo batendo. Veja as duas imagens antes de aprovar.",
+ "risco": "envio_externo",
+ "midia": [{"rotulo": "Capa do relatório", "url": "foto-depois.svg", "tipo": "imagem"}, {"rotulo": "Versão anterior", "url": "foto-antes.svg", "tipo": "imagem"}],
+ "fatos": [["12", "páginas"], ["0", "divergências"], ["3", "gráficos"], ["18h", "prazo"]],
+ "historico": [["11/11 09:10", "Relatório gerado"], ["11/11 09:30", "Revisor conferiu os totais"]],
+ "proposta": {"acao": "publicar", "rotulo": "Publicar e avisar", "detalhe": "Link no canal", "destino": "Canal do time", "previa": "Relatório de novembro publicado. Totais conferidos com a planilha de origem."},
+ "alternativa": {"acao": "publicar", "rotulo": "Só publicar", "detalhe": "Sem aviso", "destino": "Pasta de relatórios", "previa": "(sem mensagem)"}}
