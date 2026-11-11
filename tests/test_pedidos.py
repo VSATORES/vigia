@@ -98,6 +98,33 @@ class TestPedidos(unittest.TestCase):
             pedidos.decidir(self.geral, self.agentes, "ag", "../x", "aprovar")
 
 
+class TestOutraEAnexos(TestPedidos):
+    def test_outra_exige_texto_e_sai_da_fila(self):
+        self.grava(pedido())
+        with self.assertRaises(ValueError):
+            pedidos.decidir(self.geral, self.agentes, "ag", "p1", "outra", texto=" ")
+        pedidos.decidir(self.geral, self.agentes, "ag", "p1", "outra", texto="Pergunte se o técnico volta amanhã")
+        self.assertEqual(pedidos.pendentes(self.geral), [])
+        ev = pedidos.estados(self.geral)[("ag", "p1")]
+        self.assertEqual((ev["estado"], ev["texto"]), ("outra", "Pergunte se o técnico volta amanhã"))
+        self.assertFalse(os.path.exists(self.saida))
+
+    def test_anexos_pelo_resolvedor_com_cache(self):
+        cont = os.path.join(self.d, "chamadas")
+        self.geral["aprovacao"] = {"resolvedores": {"teste": f"echo x >> {cont}; echo '[{{\"rotulo\":\"f\",\"url\":\"https://h/{{id}}.jpg\"}},{{\"rotulo\":\"ruim\",\"url\":\"file:///etc/passwd\"}}]'"}}
+        self.grava(pedido(anexos={"de": "teste", "id": 42}))
+        a = pedidos.anexos(self.geral, "ag", "p1")
+        self.assertEqual([x["url"] for x in a], ["https://h/42.jpg"])  # link que não é http cai fora
+        pedidos.anexos(self.geral, "ag", "p1")
+        self.assertEqual(open(cont).read().count("x"), 1)  # segunda vez veio do cache
+
+    def test_resolvedor_nao_declarado(self):
+        self.geral["aprovacao"] = {}
+        self.grava(pedido(anexos={"de": "outro", "id": 1}))
+        with self.assertRaises(PermissionError):
+            pedidos.anexos(self.geral, "ag", "p1")
+
+
 class TestConfigExecutores(unittest.TestCase):
     def test_executor_sem_pedido_e_nome_ruim(self):
         d = tempfile.mkdtemp()

@@ -13,8 +13,8 @@ import datetime as dt, glob, json, os, re, shlex, subprocess, threading
 
 OBRIGATORIOS = ("id", "agente", "titulo", "risco", "proposta")
 RISCOS = ("producao", "envio_externo", "dinheiro", "interno", "saude")
-DECISOES = ("aprovar", "recusar", "adiar")
-FINAIS = ("aprovado", "recusado", "executado", "falhou", "executando")
+DECISOES = ("aprovar", "recusar", "adiar", "outra")
+FINAIS = ("aprovado", "recusado", "executado", "falhou", "executando", "outra")
 _trava = threading.Lock()
 RE_ID = re.compile(r"^[\w.-]{1,80}$")
 
@@ -156,6 +156,12 @@ def decidir(geral, agentes, agente, id_, decisao, opcao=0, texto=None, horas=1, 
     if decisao == "recusar":
         return _reservar(geral, {"agente": agente, "id": str(id_), "estado": "recusado", "quem": quem,
                                   "titulo": p["titulo"], "texto": (texto or "")[:500]})
+    if decisao == "outra":
+        pedido_txt = (texto or "").strip()
+        if len(pedido_txt) < 5:
+            raise ValueError("escreva o que você quer que seja feito")
+        return _reservar(geral, {"agente": agente, "id": str(id_), "estado": "outra", "quem": quem,
+                                 "titulo": p["titulo"], "texto": pedido_txt[:2000]})
     if decisao == "adiar":
         ate = agora() + dt.timedelta(hours=max(0.25, min(float(horas), 72)))
         return _reservar(geral, {"agente": agente, "id": str(id_), "estado": "adiado", "ate": ate.isoformat(),
@@ -228,3 +234,35 @@ def para_pagina(geral, agentes, saude=()):
         q["agente_nome"] = cfg.get("nome") or p["agente"]
         out.append(q)
     return out + list(saude)
+
+
+def anexos(geral, agente, id_, ttl=6 * 3600):
+    """Anexos buscados na hora (links que vencem), pelo resolvedor configurado em [aprovacao.resolvedores].
+    O pedido diz de onde: "anexos": {"de": "<resolvedor>", "id": "<id na origem>"}. Resultado em cache por 6 h."""
+    if not RE_ID.match(str(agente)) or not RE_ID.match(str(id_)):
+        raise LookupError("pedido inválido")
+    p = _achar(geral, agente, id_)
+    if not p:
+        raise LookupError(f"pedido {agente}/{id_} não existe")
+    spec = p.get("anexos") or {}
+    de, ref = str(spec.get("de", "")), str(spec.get("id", ""))
+    if not de:
+        return []
+    cmd = (geral.get("aprovacao", {}).get("resolvedores") or {}).get(de)
+    if not cmd:
+        raise PermissionError(f"resolvedor '{de}' não está em [aprovacao.resolvedores] do vigia.toml")
+    if not RE_ID.match(ref):
+        raise LookupError("id de anexos inválido")
+    pasta = os.path.join(geral["dados"], "anexos-cache")
+    os.makedirs(pasta, exist_ok=True)
+    cache = os.path.join(pasta, f"{de}-{ref}.json")
+    if os.path.exists(cache) and (dt.datetime.now().timestamp() - os.path.getmtime(cache)) < ttl:
+        return json.load(open(cache, encoding="utf-8"))
+    r = subprocess.run(["bash", "-c", cmd.replace("{id}", shlex.quote(ref))], capture_output=True, text=True,
+                       timeout=90, cwd=geral["base"])
+    if r.returncode != 0:
+        raise RuntimeError((r.stderr or r.stdout).strip()[-300:] or "resolvedor falhou")
+    lista = json.loads(r.stdout or "[]")
+    lista = [m for m in lista if isinstance(m, dict) and re.match(r"^https?:", str(m.get("url", "")))][:40]
+    json.dump(lista, open(cache, "w", encoding="utf-8"), ensure_ascii=False)
+    return lista

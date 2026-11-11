@@ -1,5 +1,13 @@
 # Mudanças
 
+## 2.2.0 — 11/11/2026
+- **Outra ação** (tecla O): quando nenhuma opção serve, você escreve o que quer; a decisão vai para o agente com o texto
+  (`estado: "outra"` em decisoes.jsonl) e ele refaz na próxima rodada com um pedido novo.
+- **Anexos buscados na hora:** o pedido aponta de onde vêm as fotos (`"anexos": {"de": "<resolvedor>", "id": ...}`) e o
+  Vigia chama o resolvedor de `[aprovacao.resolvedores]` quando o slide aparece (cache de 6 h). Bom para links que vencem.
+  Vídeo mostra o primeiro quadro; até 8 miniaturas e "+N" abre todos em tela cheia.
+- A etiqueta "Sua decisão" muda de cor conforme a fonte do pedido (ou o risco, se a fonte não tiver cor).
+
 ## 2.1.0 — 11/11/2026
 - **Aba Aprovação, a tela principal** (`/` no `vigia servir`; o painel dos agentes foi para `/painel`). Um slide por
   decisão, passando para o lado: anexo grande à esquerda (imagem, PDF, página; Espaço abre em tela cheia), à direita a

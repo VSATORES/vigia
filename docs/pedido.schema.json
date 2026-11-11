@@ -148,6 +148,26 @@
       ],
       "default": "agente",
       "description": "pessoa = sai com o nome do dono (só depois do Aprovar)."
+    },
+    "anexos": {
+      "type": "object",
+      "required": [
+        "de",
+        "id"
+      ],
+      "additionalProperties": false,
+      "description": "Anexos buscados na hora pelo Vigia (links que vencem). 'de' = nome do resolvedor em [aprovacao.resolvedores].",
+      "properties": {
+        "de": {
+          "type": "string"
+        },
+        "id": {
+          "type": [
+            "string",
+            "integer"
+          ]
+        }
+      }
     }
   },
   "$defs": {

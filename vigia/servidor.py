@@ -3,7 +3,8 @@
 GET  /                         aba Aprovação (um slide por pedido; é a tela principal)
 GET  /painel                   painel dos agentes (gerado em segundo plano quando passa de 60 s)
 GET  /api/pedidos              pedidos pendentes + cartões de saúde dos agentes
-POST /api/pedido/<ag>/<id>/<d> aprovar | recusar | adiar  (corpo: {"opcao":0|1, "texto":"...", "horas":1})
+POST /api/pedido/<ag>/<id>/<d> aprovar | recusar | adiar | outra  (corpo: {"opcao":0|1, "texto":"...", "horas":1})
+GET  /api/anexos/<ag>/<id>     anexos buscados na hora pelo resolvedor do pedido (cache 6 h)
 GET  /midia/<ag>/<arquivo>     anexo local do pedido (só dentro de pedidos/<ag>/)
 GET  /api/execucoes/<id>       últimas execuções do item (com a saída, para o log ao vivo)
 POST /api/<acao>/<id>          rodar | investigar | visto | pausar | retomar
@@ -91,6 +92,18 @@ def servir(geral, gerar, caminho_config):
                 return self._json(200, {"itens": pedidos.para_pagina(geral, ags, saude()),
                                         "resumo": pedidos.resumo(geral), "problemas": prob[:20],
                                         "fontes": geral.get("aprovacao", {}).get("fontes", {})})
+            ma = re.fullmatch(r"/api/anexos/([\w.-]+)/([\w.-]+)", rota)
+            if ma:
+                if not self._autorizado():
+                    return self._json(403, {"erro": "sem permissão"})
+                try:
+                    return self._json(200, {"anexos": pedidos.anexos(geral, ma.group(1), ma.group(2))})
+                except LookupError as e:
+                    return self._json(404, {"erro": str(e)})
+                except PermissionError as e:
+                    return self._json(403, {"erro": str(e)})
+                except Exception as e:  # noqa: BLE001 — resolvedor externo
+                    return self._json(502, {"erro": str(e)[:300]})
             m = re.fullmatch(r"/midia/([\w.-]+)/([\w./-]+)", rota)
             if m:
                 arq = pedidos.midia_segura(geral, m.group(1), unquote(m.group(2)))
@@ -137,7 +150,7 @@ def servir(geral, gerar, caminho_config):
             self.wfile.write(corpo)
 
         def do_POST(self):
-            mp = re.fullmatch(r"/api/pedido/([\w.-]+)/([\w.-]+)/(aprovar|recusar|adiar)", self.path.split("?")[0])
+            mp = re.fullmatch(r"/api/pedido/([\w.-]+)/([\w.-]+)/(aprovar|recusar|adiar|outra)", self.path.split("?")[0])
             if mp:
                 if not self._autorizado():
                     return self._json(403, {"erro": "sem permissão"})
