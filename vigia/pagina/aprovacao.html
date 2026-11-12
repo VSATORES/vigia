@@ -18,17 +18,25 @@ body{font-family:Archivo,system-ui,sans-serif;font-variation-settings:"wdth" 100
  background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px);background-size:56px 56px}
 svg{display:block}
 /* ---------- topo ---------- */
-.top{position:fixed;inset:0 0 auto 0;height:64px;z-index:20;display:flex;align-items:center;gap:18px;padding:0 28px}
-.marca{font-weight:800;font-size:18px;font-variation-settings:"wdth" 125;letter-spacing:-.01em}
-.filtros{display:flex;gap:4px;overflow:auto;scrollbar-width:none;min-width:0}.filtros::-webkit-scrollbar{display:none}
+/* 12/11: nada no topo encobre nada. Se não couber tudo numa linha, os filtros descem para uma 2ª linha (classe .duas,
+   ligada pelo ajustaTopo) e o palco desce junto (--topo = altura real do topo). */
+.top{position:fixed;inset:0 0 auto 0;min-height:64px;z-index:20;display:flex;flex-wrap:nowrap;align-items:center;gap:6px 18px;padding:0 28px}
+.top.duas{flex-wrap:wrap;padding:10px 28px 8px}.top.duas .filtros{order:10;flex:1 0 100%;margin:0 -12px}
+.marca{font-weight:800;font-size:18px;font-variation-settings:"wdth" 125;letter-spacing:-.01em;flex:none}
+.filtros{display:flex;gap:4px;overflow:auto;scrollbar-width:none;min-width:0;flex:0 1 auto}.filtros::-webkit-scrollbar{display:none}
+.filtros.rola{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}
+.top .painel-link{flex:none}
 .filtro{white-space:nowrap;font-size:13.5px;font-weight:500;padding:7px 12px;border-radius:8px;color:#ffffffa8;transition:color .15s ease,background-color .15s ease}
 .filtro .n{font-variant-numeric:tabular-nums;color:#ffffff60;margin-left:6px}
 .filtro[aria-pressed=true]{background:#ffffff14;color:#fff}.filtro[aria-pressed=true] .n{color:var(--etiqueta)}
 @media(hover:hover) and (pointer:fine){.filtro:hover{color:#fff}}
-.contagem{margin-left:auto;font-size:13.5px;color:#ffffff99;white-space:nowrap;font-variant-numeric:tabular-nums}
+.contagem{margin-left:auto;font-size:13.5px;color:#ffffff99;white-space:nowrap;font-variant-numeric:tabular-nums;min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:900px){.top .marca{margin-right:auto}}
+@media(max-width:640px){.top,.top.duas{padding-left:16px;padding-right:16px;column-gap:8px}.contagem{display:none}
+ .top .painel-link{padding:7px 8px}.painel-link .lg{display:none}.top.duas .filtros{margin:0 -4px}}
 .contagem strong{color:#fff;font-weight:700}
 /* ---------- trilho ---------- */
-.palco{position:fixed;inset:72px 0 64px 0;z-index:1}
+.palco{position:fixed;inset:calc(var(--topo,64px) + 8px) 0 64px 0;z-index:1}
 .trilho{height:100%;display:flex;transition:transform 240ms var(--ease-out)}
 .slot{flex:0 0 min(1200px,calc(100% - 150px));height:100%;padding:0 10px;transition:opacity 200ms ease}
 .slot[aria-hidden=true]{opacity:.28}
@@ -97,11 +105,20 @@ svg{display:block}
 .rodape kbd{font:600 12px Archivo;border:1px solid #ffffff38;border-radius:5px;padding:1px 6px;margin-right:5px;color:#fff}
 .amostra{position:fixed;left:24px;bottom:22px;font-size:12px;color:#ffffff59;z-index:20}
 /* aviso + desfazer */
-.aviso{position:fixed;left:50%;bottom:76px;z-index:60;transform:translate(-50%,12px);opacity:0;background:#fff;color:var(--tinta);border-radius:12px;
- padding:10px 10px 10px 16px;display:flex;gap:14px;align-items:center;font-size:14.5px;font-weight:600;box-shadow:0 16px 40px #0007;
- transition:opacity 180ms var(--ease-out),transform 180ms var(--ease-out);pointer-events:none}
+/* 12/11: o aviso mora na faixa do rodapé (abaixo do slide), numa linha só, e as dicas de teclado somem enquanto ele
+   aparece: não cobre botão nenhum (até 900 px a faixa fica reservada: .palco bottom 62px). A barrinha mostra quanto tempo falta para valer (DESFAZ_MS). */
+.aviso{position:fixed;left:50%;bottom:10px;z-index:60;transform:translate(-50%,8px);opacity:0;background:#fff;color:var(--tinta);border-radius:12px;
+ height:44px;max-width:min(760px,calc(100vw - 32px));overflow:hidden;
+ padding:0 6px 0 16px;display:flex;gap:14px;align-items:center;font-size:14.5px;font-weight:600;box-shadow:0 10px 30px #0006;
+ transition:opacity 160ms var(--ease-out),transform 160ms var(--ease-out);pointer-events:none}
 .aviso.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
-.aviso button{padding:7px 12px;border-radius:8px;background:var(--azulejo);font-weight:700}
+#aviso-t{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aviso button{flex:none;padding:7px 12px;border-radius:8px;background:var(--azulejo);font-weight:700}
+.aviso .barra{position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--liberado);transform-origin:left;transform:scaleX(0)}
+.aviso.on .barra{animation:avisoTempo var(--aviso-ms,4000ms) linear forwards}
+@keyframes avisoTempo{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.rodape,.problemas,.amostra{transition:opacity 140ms ease}
+body.com-aviso .rodape,body.com-aviso .problemas,body.com-aviso .amostra{opacity:0;pointer-events:none}
 /* gráfico */
 .graf{position:relative}.graf .tt{position:absolute;pointer-events:none;background:#fff;color:var(--tinta);font-size:12.5px;font-weight:600;padding:4px 8px;border-radius:6px;transform:translate(-50%,-115%);white-space:nowrap;opacity:0;transition:opacity 100ms ease;font-variant-numeric:tabular-nums;box-shadow:0 4px 14px #0004}
 .graf .fonte{font-size:12px;color:#ffffff80;margin-top:6px}
@@ -118,7 +135,7 @@ svg{display:block}
 #lb .tiras{justify-content:center;padding-bottom:18px}
 .fim{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#ffffffb0;text-align:center;font-size:15px}
 .fim b{font-size:34px;color:#fff;font-variation-settings:"wdth" 125}
-@media(max-width:900px){.slide{grid-template-columns:1fr;grid-template-rows:30% minmax(0,1fr) auto}.op small,.op kbd,.ilhos,.etq .pergunta{display:none}.etq{padding:10px 12px;gap:6px}.op{padding:9px 12px;font-size:14px}.etq .resto{margin-left:0}.tiras{padding:6px 10px}.tira{width:54px;height:38px}.tiras .graf{display:none}.slot{flex-basis:calc(100% - 36px)}.seta,.contagem,.rodape,.amostra{display:none}.palco{bottom:12px}
+@media(max-width:900px){.slide{grid-template-columns:1fr;grid-template-rows:30% minmax(0,1fr) auto}.op small,.op kbd,.ilhos,.etq .pergunta{display:none}.etq{padding:10px 12px;gap:6px}.op{padding:9px 12px;font-size:14px}.etq .resto{margin-left:0}.tiras{padding:6px 10px}.tira{width:54px;height:38px}.tiras .graf{display:none}.slot{flex-basis:calc(100% - 36px)}.seta,.contagem,.rodape,.amostra{display:none}.palco{bottom:62px}
  .slide h2{font-size:22px}.txt{padding:18px 18px 10px}.fatos .fato:nth-child(n+3){display:none}.etq{flex-wrap:wrap}.etq .pergunta{width:100%}.hist{display:none}}
 .slide.c1 .hist{display:none}
 .slide.c2 .ctx{-webkit-line-clamp:2;margin:8px 0 12px}.slide.c2 .sai .corpo{-webkit-line-clamp:4}.slide.c2 .fatos{margin-top:12px;padding-top:10px}
@@ -133,7 +150,7 @@ svg{display:block}
 .semmidia a{color:var(--etiqueta);font-weight:600}
 .doc-thumb{width:100%;height:100%;display:grid;place-items:center;background:#0f1418;color:#fff;font-size:15px;font-weight:600}
 .doc-thumb span{display:block;font-size:56px;margin-bottom:8px;text-align:center}
-.erro-api{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:30;background:#B3372D;color:#fff;padding:8px 14px;border-radius:9px;font-size:14px;font-weight:600;display:none}
+.erro-api{position:fixed;top:calc(var(--topo,64px) + 8px);left:50%;transform:translateX(-50%);z-index:30;background:#B3372D;color:#fff;padding:8px 14px;border-radius:9px;font-size:14px;font-weight:600;display:none}
 .tiras{overflow-x:auto;scrollbar-width:thin}.tira.mais{display:grid;place-items:center;background:#ffffff14;color:#fff;font-weight:700;font-size:14px;opacity:1}
 .carregando{position:absolute;inset:0;display:grid;place-items:center;color:#ffffffa0;font-size:14px}
 .vthumb{position:relative;display:block;width:100%;height:100%}.vthumb video{width:100%;height:100%;object-fit:cover;display:block;background:#000}.vthumb i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;color:#fff;font-size:28px;text-shadow:0 2px 10px #000a}.tira .vthumb i{font-size:14px}
@@ -161,7 +178,7 @@ svg{display:block}
 <footer class="rodape"><span><kbd>←</kbd><kbd>→</kbd>passar</span><span><kbd>1</kbd><kbd>2</kbd>escolher</span><span><kbd>O</kbd>outra ação</span><span><kbd>E</kbd>editar</span><span><kbd>R</kbd>recusar</span><span><kbd>L</kbd>depois</span><span><kbd>Espaço</kbd>ver o anexo inteiro</span></footer>
 <p class="problemas" id="problemas"></p>
 <div id="gaveta" role="dialog" aria-modal="true"><div class="g" id="gav"></div></div>
-<div class="aviso" id="aviso" role="status" aria-live="polite"><span id="aviso-t"></span><button id="desfazer">Desfazer</button></div>
+<div class="aviso" id="aviso" role="status" aria-live="polite"><span id="aviso-t"></span><button id="desfazer">Desfazer</button><i class="barra" aria-hidden="true"></i></div>
 <div id="lb" role="dialog" aria-modal="true" aria-label="Anexo em tela cheia"><div class="lbt" id="lbt"></div><div class="area" id="lba"></div><div class="tiras" id="lbm"></div></div>
 <script>
 const API=null;
@@ -191,7 +208,14 @@ function topo(){const D=ITENS.filter(p=>!p.pendencia);const nomes=[...new Set(D.
  $('#filtros').innerHTML=`<button class="filtro" aria-pressed="${!filtro}" data-f="">Tudo<span class="n">${tot}</span></button>`+nomes.filter(a=>n(a)).map(a=>`<button class="filtro" aria-pressed="${filtro===a}" data-f="${esc(a)}">${esc(a)}<span class="n">${n(a)}</span></button>`).join('');
  $('#filtros').querySelectorAll('.filtro').forEach(b=>b.onclick=()=>{filtro=b.dataset.f||null;atual=0;render()});
  const L=vis();const cf=RES.conferidos_hoje?` · ${RES.conferidos_hoje} conferidos${RES.falhas_hoje?` (${RES.falhas_hoje} não deram certo)`:''}`:'';$('#contagem').innerHTML=(L.length?`<strong>${atual+1} de ${L.length}</strong> esperando você · `:'')+`${RES.decididos_hoje} decididos hoje${cf}`;$('#n-pend').textContent=pends().length;
- $('#ant').disabled=atual<=0;$('#prox').disabled=atual>=L.length-1}
+ $('#ant').disabled=atual<=0;$('#prox').disabled=atual>=L.length-1;ajustaTopo()}
+// 12/11: o topo nunca encobre nada. Tenta tudo numa linha; se os filtros ou a contagem ficarem cortados, os filtros descem
+// para uma 2ª linha. O palco acompanha a altura real do topo (--topo).
+function ajustaTopo(){const t=$('.top'),f=$('#filtros'),c=$('#contagem');if(!t)return;t.classList.remove('duas');
+ const corta=e=>e&&e.offsetWidth>0&&e.scrollWidth>e.clientWidth+1;if(corta(f)||corta(c)||(f.children.length&&f.offsetWidth<60))t.classList.add('duas');
+ f.classList.toggle('rola',f.scrollWidth>f.clientWidth+1);const h=t.offsetHeight+'px',raiz=document.documentElement;
+ if(raiz.style.getPropertyValue('--topo')!==h){raiz.style.setProperty('--topo',h);if(typeof cabe==='function')requestAnimationFrame(()=>{posiciona(true);cabe()})}}
+document.querySelectorAll('.top a.painel-link[href="/painel"]').forEach(a=>{if(a.textContent==='Painel dos agentes')a.innerHTML='Painel<span class="lg"> dos agentes</span>'});
 function quando(s){if(!s)return'';const d=(Date.now()-new Date(s))/36e5;return d<1?'agora há pouco':d<24?`há ${Math.round(d)} h`:`há ${Math.round(d/24)} dia${Math.round(d/24)>1?'s':''}`}
 function thumb(m,grande){const u=urlOk(m.url);if((m.tipo||'imagem')==='imagem'&&u)return `<img src="${esc(u)}" alt="${esc(m.rotulo)}" loading="lazy">`;
  if(m.tipo==='video'&&u&&grande)return `<span class="vthumb"><video src="${esc(u)}#t=0.5" muted playsinline preload="metadata" aria-label="${esc(m.rotulo)}"></video><i aria-hidden="true">▶</i></span>`;
@@ -267,7 +291,7 @@ const ROT={aprovar:null,recusar:'Recusado',adiar:'Para depois',outra:'Outra aç�
 function decide(p,d,o=0){if(pend)envia();const s=sl(p),c=s.querySelector('.carimbo');const acao=o?p.alternativa:p.proposta;
  const rot=d==='aprovar'?acao.rotulo:ROT[d];c.textContent=rot;c.style.color=COR[d];c.classList.add('on');
  setTimeout(()=>s.classList.add('sai'),260);
- setTimeout(()=>{pend={k:chave(p),p,d,o,texto:d==='outra'?p._outra:(o===0&&p._editado?p._texto:undefined),t:setTimeout(envia,5000)};render();aviso(`${rot}: ${p.titulo}`,true)},480)}
+ setTimeout(()=>{pend={k:chave(p),p,d,o,texto:d==='outra'?p._outra:(o===0&&p._editado?p._texto:undefined),t:setTimeout(envia,DESFAZ_MS)};render();aviso(`${rot}: ${p.titulo}`,true)},480)}
 async function envia(){if(!pend)return;const x=pend;clearTimeout(x.t);pend=null;
  try{await api(`/api/pedido/${encodeURIComponent(x.p.agente)}/${encodeURIComponent(x.p.id)}/${x.d}`,{opcao:x.o,texto:x.texto,horas:1});
   ITENS=ITENS.filter(p=>chave(p)!==x.k);RES.decididos_hoje+=x.d==='adiar'?0:1;render()}
@@ -277,8 +301,11 @@ async function saude(p,a){
  // "Já vi" fecha o pedido pelo caminho normal (ação "ciente", que não executa nada de fora). Antes: "agente 'undefined'".
  if(!p.k&&p.agente&&p.id){if(a==='visto')decide(p,'aprovar',0);return}
  try{await api(`/api/${a}/${encodeURIComponent(p.k)}`,{texto:'pela aba Aprovação'});aviso(a==='visto'?'Anotado: '+p.agente_nome:a==='rodar'?'Rodando '+p.agente_nome:'Investigação pedida',false);if(a==='visto'){ITENS=ITENS.filter(x=>x!==p);render()}}catch(e){erro(e.message)}}
-let tAviso;function aviso(t,desf){const a=$('#aviso');$('#aviso-t').textContent=t;$('#desfazer').hidden=!desf;a.classList.add('on');clearTimeout(tAviso);tAviso=setTimeout(()=>a.classList.remove('on'),5000)}
-$('#desfazer').onclick=()=>{if(!pend)return;clearTimeout(pend.t);const k=pend.k;pend=null;render();const i=vis().findIndex(p=>chave(p)===k);if(i>=0){atual=i;posiciona(true)}$('#aviso').classList.remove('on')};
+// 12/11: 5000 → 4000 ms (aviso mais curto). Vale para o aviso e para o prazo do Desfazer: os dois andam juntos.
+const DESFAZ_MS=4000;document.documentElement.style.setProperty('--aviso-ms',DESFAZ_MS+'ms');
+let tAviso;function fechaAviso(){$('#aviso').classList.remove('on');document.body.classList.remove('com-aviso')}
+function aviso(t,desf){const a=$('#aviso');$('#aviso-t').textContent=t;$('#aviso-t').title=t;$('#desfazer').hidden=!desf;a.classList.remove('on');void a.offsetWidth;a.classList.add('on');document.body.classList.add('com-aviso');clearTimeout(tAviso);tAviso=setTimeout(fechaAviso,DESFAZ_MS)}
+$('#desfazer').onclick=()=>{if(!pend)return;clearTimeout(pend.t);const k=pend.k;pend=null;render();const i=vis().findIndex(p=>chave(p)===k);if(i>=0){atual=i;posiciona(true)}clearTimeout(tAviso);fechaAviso()};
 addEventListener('beforeunload',()=>{if(pend)envia()});
 let lbP=null,lbI=0,lbVolta=null;function abreLB(p,i){if(!p||!(p.midia||[]).length)return;lbP=p;lbI=i;lbVolta=document.activeElement;$('#lb').classList.add('on');lb();$('#lb .x').focus()}
 function lb(){paraVideos();const M=lbP.midia,m=M[lbI],u=urlOk(m.url);$('#lbt').innerHTML=`${esc(m.rotulo)} <span>${esc(lbP.agente_nome)}</span>${u?`<a class="painel-link" href="${esc(u)}" target="_blank" rel="noopener">Abrir em outra aba</a>`:''}<button class="x" aria-label="Fechar" onclick="fechaLB()">${I.x}</button>`;
@@ -293,7 +320,7 @@ function tocaVideo(bt,u){bt.parentNode.innerHTML=`<video data-u="${esc(u)}" src=
  const v=document.querySelector('#lba video');v.addEventListener('loadedmetadata',()=>{if(POSV[u])v.currentTime=POSV[u]},{once:true});v.addEventListener('pause',()=>{POSV[u]=v.currentTime});v.play().catch(()=>{})}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)paraVideos()});
 $('#ant').innerHTML=I.l;$('#prox').innerHTML=I.r;$('#ant').onclick=()=>vai(-1);$('#prox').onclick=()=>vai(1);
-addEventListener('resize',()=>{posiciona(true);cabe()});
+addEventListener('resize',()=>{ajustaTopo();posiciona(true);cabe()});
 let tx=null;addEventListener('touchstart',e=>{if(e.touches.length===1)tx=e.touches[0].clientX},{passive:true});addEventListener('touchend',e=>{if(tx===null)return;const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>50)vai(d<0?1:-1);tx=null});
 document.addEventListener('keydown',e=>{if(e.target.tagName==='TEXTAREA')return;
  if($('#lb').classList.contains('on')){if(e.key==='Escape'||e.key===' '){e.preventDefault();fechaLB()}const n=lbP.midia.length;if(n>1&&e.key==='ArrowRight'){lbI=(lbI+1)%n;lb()}if(n>1&&e.key==='ArrowLeft'){lbI=(lbI-1+n)%n;lb()}return}

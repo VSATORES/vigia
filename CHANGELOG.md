@@ -1,5 +1,13 @@
 # Mudanças
 
+## 2.8.0 — 12/11/2026
+- **Aviso de Desfazer** mais curto (4 s, era 5 s) e no rodapé, abaixo do slide, numa linha só, com uma barrinha do tempo
+  que falta: não cobre mais nenhum botão. As dicas de teclado somem enquanto ele aparece.
+- **Topo sem sobreposição:** se a lista de agentes ou o contador não cabem numa linha, a lista desce para uma 2ª linha e o
+  slide desce junto. No celular o link vira "Painel" e o contador some. A 2ª fileira de botões do slide não fica mais cortada.
+- **Aviso de computador desligado:** rotina perdida com o PC desligado avisa uma vez quando ele volta (sem reavisar após
+  pausa/retomada nem para item novo).
+
 ## 2.7.0 — 12/11/2026
 - **Aba Estratégia** no topo da Aprovação (ao lado de Pendências e Painel dos agentes), quando o vigia.toml tem
   `[estrategia]`: `arquivo` (JSON da última análise do time), `rodar` (botão "Rodar agora"), `rotulo` e `trava`.
