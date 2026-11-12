@@ -1,5 +1,9 @@
 # Mudanças
 
+## 2.7.0 — 12/11/2026
+- **Aba Estratégia** no topo da Aprovação (ao lado de Pendências e Painel dos agentes), quando o vigia.toml tem
+  `[estrategia]`: `arquivo` (JSON da última análise do time), `rodar` (botão "Rodar agora"), `rotulo` e `trava`.
+
 ## 2.6.1 — 12/11/2026
 - Correção: "Já vi" em slide de saúde que veio de um pedido (ex.: o conferidor avisando que uma execução não deu certo)
   dava "agente 'undefined' não existe na configuração". Agora fecha o pedido pelo caminho normal (ação "ciente").

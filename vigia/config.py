@@ -58,6 +58,9 @@ def carregar(caminho):
         "pedidos": _abs(base, g.get("pedidos", "pedidos")),
         "aprovacao": g.get("aprovacao", {}),
         "aparencia": g.get("aparencia", {}),
+        # aba Estratégia (2.7.0): arquivo = JSON da última análise do time; rodar = comando que dispara uma rodada
+        "estrategia": {**g.get("estrategia", {}),
+                       **({"arquivo": _abs(base, g["estrategia"]["arquivo"])} if g.get("estrategia", {}).get("arquivo") else {})},
     }
     if not 0 < geral["meta"] <= 1:
         erros.append(f"vigia.toml: meta deve estar entre 0 e 1 (ex.: 0.95), veio {geral['meta']}")

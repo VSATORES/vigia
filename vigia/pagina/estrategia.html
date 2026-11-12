@@ -1,0 +1,64 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1C232B"><meta name="color-scheme" content="dark">
+<title>Vigia · Estratégia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root{--noite:#1C232B;--noite2:#252E38;--azulejo:#EEF2F1;--tinta:#1A1F24;--tinta2:#4A5560;--etiqueta:#F4C430;--ok:#1F7A52;--alerta:#B3372D}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Archivo,system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased;background-color:var(--noite);
+ background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px);background-size:56px 56px;min-height:100vh}
+.top{position:sticky;top:0;z-index:20;height:64px;display:flex;align-items:center;gap:18px;padding:0 28px;background:linear-gradient(var(--noite) 70%,transparent)}
+.marca{font-weight:800;font-size:18px;font-variation-settings:"wdth" 125;color:#fff;text-decoration:none}
+.painel-link{font-size:13.5px;color:#ffffffa8;text-decoration:none;padding:7px 12px;border-radius:8px;white-space:nowrap}
+.painel-link.on{color:#fff;background:#ffffff1f}.painel-link:hover{color:#fff;background:#ffffff14}
+.esq{margin-left:auto}
+main{max-width:1100px;margin:0 auto;padding:12px 28px 60px}
+h1{font-size:30px;font-variation-settings:"wdth" 120;line-height:1.1}
+.sub{color:#ffffffa8;font-size:14px;margin:6px 0 20px}
+.linha{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.btn{font:inherit;font-weight:700;font-size:14px;border:0;border-radius:10px;padding:11px 18px;background:var(--etiqueta);color:var(--tinta);cursor:pointer}
+.btn:disabled{opacity:.6;cursor:default}
+h2{font-size:13px;color:#ffffffa8;font-weight:700;margin:22px 0 10px;letter-spacing:.01em}
+.time{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.membro{background:#ffffff0d;border:1px solid #ffffff1f;border-radius:12px;padding:12px 14px}
+.membro b{font-size:16px;font-variation-settings:"wdth" 120}.membro small{display:block;font-size:12px;color:#ffffff99;margin:2px 0 6px}
+.membro p{font-size:12.5px;line-height:1.45;color:#ffffffcc}
+.resumo{background:var(--azulejo);color:var(--tinta);border-radius:14px;padding:16px 18px;margin-top:4px}
+.resumo b{font-size:12px;color:var(--tinta2)}.resumo p{font-size:15px;line-height:1.5;margin-top:4px}
+.resumo ul{margin:8px 0 0 18px;font-size:13.5px;line-height:1.5;color:var(--tinta2)}
+.sug{display:flex;gap:14px;background:var(--azulejo);color:var(--tinta);border-radius:14px;padding:16px 18px;margin-bottom:10px}
+.n{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--etiqueta);color:var(--tinta)}
+.c{min-width:0}.c h3{font-size:18px;font-variation-settings:"wdth" 116;line-height:1.25;margin-bottom:6px}
+.c p{font-size:13.5px;line-height:1.5;color:var(--tinta2);margin-bottom:6px}.c p b{color:var(--tinta)}
+.prob{color:var(--tinta)!important}.passo{background:#fff;border-radius:8px;padding:6px 10px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tags span{font-size:12px;font-weight:650;border-radius:6px;padding:3px 8px;background:#fff;color:var(--tinta2);border:1px solid #D9E0DE}
+.vazio{color:#ffffffa8;font-size:14px;padding:30px 0}
+:focus-visible{outline:2.5px solid var(--etiqueta);outline-offset:3px}
+</style>
+</head><body>
+<header class="top"><a class="marca" href="/">Vigia</a><a class="painel-link" href="/">Aprovação</a><a class="painel-link on" href="/estrategia" aria-current="page">Estratégia</a><a class="painel-link esq" href="/painel">Painel dos agentes</a></header>
+<main id="m"></main>
+<script>
+const DADOS=null;
+const esc=(s)=>String(s??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+const NIVEL={alto:'alto',medio:'médio',baixo:'baixo'}
+function desenha(){const d=DADOS||{},a=d.analise
+ const membros=(a&&a.time||[]).slice();if(a&&a.resumo&&!membros.some(t=>/estrateg/i.test(t.papel||'')))membros.push({nome:'Ava',papel:'Estrategista',resumo:'Junta o que o time achou, tira repetição e prioriza as sugestões por impacto e esforço.'})
+ const time=membros.map(t=>`<div class="membro"><b>${esc(t.nome)}</b><small>${esc(t.papel)}</small><p>${esc(t.resumo)}</p></div>`).join('')
+ const sug=(a&&a.sugestoes||[]).map((s,i)=>`<article class="sug"><div class="n">${i+1}</div><div class="c"><h3>${esc(s.titulo)}</h3>
+  <p class="prob">${esc(s.problema)}</p><p><b>Prova:</b> ${esc(s.evidencia)}</p><p><b>Sugestão:</b> ${esc(s.sugestao)}</p>
+  <p class="passo"><b>Primeiro passo:</b> ${esc(s.primeiro_passo)}</p>
+  <div class="tags"><span>Impacto ${esc(NIVEL[s.impacto]||s.impacto)}</span><span>Esforço ${esc(NIVEL[s.esforco]||s.esforco)}</span>${s.dono?`<span>Dono: ${esc(s.dono)}</span>`:''}${s.de_quem?`<span>De: ${esc(Array.isArray(s.de_quem)?s.de_quem.join(', '):s.de_quem)}</span>`:''}</div></div></article>`).join('')
+ document.getElementById('m').innerHTML=`<div class="linha"><div><h1>Estratégia</h1>
+  <p class="sub">${a?`Última análise: ${esc(d.atualizado)}${d.rotulo?' · roda '+esc(d.rotulo):''}${d.rodando?' · o time está analisando agora':''}`:'Ainda não há análise.'}</p></div>
+  ${d.pode_rodar?`<button class="btn" id="rodar" ${d.rodando?'disabled':''}>${d.rodando?'O time está analisando…':'Rodar agora'}</button>`:''}</div>
+  ${time?`<h2>O time</h2><div class="time">${time}</div>`:''}
+  ${a&&a.resumo?`<h2>Resumo</h2><div class="resumo"><b>Ava, estrategista</b><p>${esc(a.resumo)}</p>${(a.mudou||[]).length?`<ul>${a.mudou.map(m=>`<li>${esc(m)}</li>`).join('')}</ul>`:''}</div>`:''}
+  ${sug?`<h2>Sugestões, em ordem de prioridade</h2>${sug}`:(a?'':'<p class="vazio">Quando o time rodar, as sugestões aparecem aqui.</p>')}`
+ const b=document.getElementById('rodar');if(b)b.onclick=async()=>{b.disabled=true;b.textContent='O time está analisando…'
+  try{const r=await fetch('/api/estrategia/rodar',{method:'POST',headers:{'X-Vigia-Token':d.token||'','Content-Type':'application/json'},body:'{}'});if(!r.ok)throw new Error('HTTP '+r.status)}
+  catch(e){b.disabled=false;b.textContent='Não consegui rodar ('+e.message+')'}}}
+desenha()
+</script>
+</body></html>

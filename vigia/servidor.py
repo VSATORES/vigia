@@ -11,7 +11,7 @@ POST /api/<acao>/<id>          rodar | investigar | visto | pausar | retomar
 As rotas /api exigem o cabeçalho X-Vigia-Token (chave aleatória desta instalação, em dados/token) e só
 respondem para 127.0.0.1. "rodar" só executa o comando que está no toml do agente.
 """
-import http.server, json, os, re, secrets, threading, time
+import http.server, json, os, re, secrets, subprocess, threading, time
 from urllib.parse import unquote
 
 _trava = threading.Lock()
@@ -141,8 +141,37 @@ def servir(geral, gerar, caminho_config):
                 self.end_headers()
                 self.wfile.write(corpo)
                 return
+            if rota == "/estrategia":
+                est = config.carregar(caminho_config)[0].get("estrategia", {})
+                if not est.get("arquivo"):
+                    self.send_response(404)
+                    self.end_headers()
+                    return
+                try:
+                    analise = json.load(open(est["arquivo"], encoding="utf-8"))
+                    quando = time.strftime("%d/%m %H:%M", time.localtime(os.path.getmtime(est["arquivo"])))
+                except (OSError, ValueError):
+                    analise, quando = None, ""
+                trava = est.get("trava", "")
+                rodando = bool(trava) and os.path.exists(trava) and \
+                    subprocess.run(["flock", "-n", trava, "true"], capture_output=True).returncode != 0
+                html = open(os.path.join(os.path.dirname(__file__), "pagina", "estrategia.html"), encoding="utf-8").read()
+                dados = {"token": tok, "analise": analise, "atualizado": quando, "rotulo": est.get("rotulo", ""),
+                         "pode_rodar": bool(est.get("rodar")), "rodando": rodando}
+                html = html.replace("const DADOS=null;", "const DADOS=" + json.dumps(dados, ensure_ascii=False).replace("</", "<\\/") + ";", 1)
+                html = html.replace("</head>", aparencia.css(geral) + "</head>", 1)
+                corpo = html.encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(corpo)
+                return
             if rota in ("/", "/aprovacao"):
                 html = open(os.path.join(os.path.dirname(__file__), "pagina", "aprovacao.html"), encoding="utf-8").read()
+                if config.carregar(caminho_config)[0].get("estrategia", {}).get("arquivo"):
+                    html = html.replace('<a class="painel-link" href="/painel">Painel dos agentes</a>',
+                                        '<a class="painel-link" href="/estrategia">Estratégia</a><a class="painel-link" href="/painel">Painel dos agentes</a>', 1)
                 html = html.replace("const API=null;", "const API=" + json.dumps({"token": tok}) + ";", 1)
                 html = html.replace("</head>", aparencia.css(geral) + "</head>", 1)
                 corpo = html.encode()
@@ -174,6 +203,15 @@ def servir(geral, gerar, caminho_config):
             self.wfile.write(corpo)
 
         def do_POST(self):
+            if self.path.split("?")[0] == "/api/estrategia/rodar":
+                if not self._autorizado():
+                    return self._json(403, {"erro": "sem permissão"})
+                est = config.carregar(caminho_config)[0].get("estrategia", {})
+                if not est.get("rodar"):
+                    return self._json(404, {"erro": "sem comando de rodar em [estrategia]"})
+                subprocess.Popen(["bash", "-c", est["rodar"]], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                 stdin=subprocess.DEVNULL, start_new_session=True)
+                return self._json(200, {"ok": True})
             mp = re.fullmatch(r"/api/pedido/([\w.-]+)/([\w.-]+)/(aprovar|recusar|adiar|outra)", self.path.split("?")[0])
             if mp:
                 if not self._autorizado():
