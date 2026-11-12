@@ -63,16 +63,20 @@ svg{display:block}
 .tiras .graf{flex:1;min-width:0;margin-left:6px}
 .grafsolo{flex:1;display:flex;flex-direction:column;justify-content:center;padding:36px 40px}
 /* ---------- texto ---------- */
-.txt{padding:30px 34px 18px;display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
+/* 12/11: o slide mostra o texto INTEIRO (contexto, pareceres, mensagem). Se não couber, só a coluna do texto rola;
+   a etiqueta de decisão fica sempre à vista. A sombra no pé (.mais) avisa que tem mais embaixo. */
+.txt{padding:30px 34px 18px;display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden auto;overscroll-behavior:contain;
+ scrollbar-width:thin;scrollbar-color:#AEB9B7 transparent;color-scheme:light}
+.txt>*{flex:none}.txt.mais{-webkit-mask-image:linear-gradient(#000 calc(100% - 46px),#0000);mask-image:linear-gradient(#000 calc(100% - 46px),#0000)}
 .de{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--tinta2);font-weight:500;margin-bottom:14px}
 .de .ico{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:800}
 .de time{margin-left:auto;color:var(--tinta3);font-variant-numeric:tabular-nums}
 .slide h2{font-size:30px;line-height:1.08;font-weight:750;font-variation-settings:"wdth" 118;letter-spacing:-.015em;text-wrap:balance}
-.ctx{color:var(--tinta2);font-size:15px;line-height:1.5;margin:12px 0 18px;max-width:58ch;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.ctx{color:var(--tinta2);font-size:15px;line-height:1.5;margin:12px 0 18px;max-width:72ch;white-space:pre-line;overflow-wrap:anywhere}.ctx .rot{color:var(--tinta);font-weight:700}
 .sai{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 0 0 1px var(--rejunte)}
 .sai .para{font-size:13px;color:var(--tinta3);margin-bottom:6px;display:flex;gap:8px}
 .sai .para b{color:var(--tinta2);font-weight:600}.sai .para em{font-style:normal;margin-left:auto;color:#2f5fd0;font-weight:600}
-.sai .corpo{font-size:15px;line-height:1.5;white-space:pre-wrap;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
+.sai .corpo{font-size:15px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
 .sai textarea{width:100%;min-height:128px;border:0;outline:2px solid #2f5fd0;border-radius:8px;font:inherit;font-size:15px;line-height:1.5;padding:8px;resize:vertical;background:#fff;color:var(--tinta)}
 .estado{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600}
 .estado span{padding:4px 10px;border-radius:7px;background:var(--azulejo)}.estado span:last-child{background:#dff1e8;color:var(--liberado)}
@@ -136,11 +140,14 @@ body.com-aviso .rodape,body.com-aviso .problemas,body.com-aviso .amostra{opacity
 .fim{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#ffffffb0;text-align:center;font-size:15px}
 .fim b{font-size:34px;color:#fff;font-variation-settings:"wdth" 125}
 @media(max-width:900px){.slide{grid-template-columns:1fr;grid-template-rows:30% minmax(0,1fr) auto}.op small,.op kbd,.ilhos,.etq .pergunta{display:none}.etq{padding:10px 12px;gap:6px}.op{padding:9px 12px;font-size:14px}.etq .resto{margin-left:0}.tiras{padding:6px 10px}.tira{width:54px;height:38px}.tiras .graf{display:none}.slot{flex-basis:calc(100% - 36px)}.seta,.contagem,.rodape,.amostra{display:none}.palco{bottom:62px}
- .slide h2{font-size:22px}.txt{padding:18px 18px 10px}.fatos .fato:nth-child(n+3){display:none}.etq{flex-wrap:wrap}.etq .pergunta{width:100%}.hist{display:none}}
-.slide.c1 .hist{display:none}
-.slide.c2 .ctx{-webkit-line-clamp:2;margin:8px 0 12px}.slide.c2 .sai .corpo{-webkit-line-clamp:4}.slide.c2 .fatos{margin-top:12px;padding-top:10px}
-.slide.c3 .fatos{display:none}.slide.c3 h2{font-size:clamp(20px,2.2vw,26px)}
-.slide.c4 .ctx{display:none}.slide.c4 .sai .corpo{-webkit-line-clamp:3}
+ .slide h2{font-size:22px}.txt{padding:18px 18px 10px}.fatos{flex-wrap:wrap;row-gap:10px}.fatos .fato{flex:1 1 40%}.fatos .fato:nth-child(3){border-left:0;padding-left:0}.etq{flex-wrap:wrap}.etq .pergunta{width:100%}.hist{display:none}}
+/* 12/11: texto longo não some mais (antes c2–c4 cortavam contexto e mensagem); só o título encolhe um pouco (c1). */
+.slide.c1 h2{font-size:clamp(21px,2vw,25px)}
+/* sem foto nem vídeo, a coluna da imagem só mostra a origem: o texto ganha a maior parte da largura */
+@media(min-width:901px){.slide.so-texto{grid-template-columns:minmax(0,.55fr) minmax(0,1.45fr)}.slide.so-texto .semmidia{padding:32px 28px}
+ .slide.so-texto .semmidia .grande{font-size:clamp(30px,3vw,44px)}.slide.so-texto .doc-thumb{font-size:14px;padding:0 16px;text-align:center}}
+@media(max-width:900px){.slide.so-texto{grid-template-rows:auto minmax(0,1fr) auto}.slide.so-texto .vis{max-height:30vh}.slide.so-texto .semmidia{padding:14px 18px;gap:6px}
+ .slide.so-texto .semmidia .grande{font-size:24px}.slide.so-texto .foto{min-height:90px}}
 @media(prefers-reduced-motion:reduce){.trilho,.slide,.carimbo,.aviso{transition:opacity 150ms ease!important}.slide.sai{transform:none}.carimbo,.carimbo.on{transform:translate(-50%,-50%) rotate(-7deg)}}
 
 .painel-link{font-size:13.5px;color:#ffffffa8;text-decoration:none;padding:7px 12px;border-radius:8px;white-space:nowrap}
@@ -155,8 +162,7 @@ body.com-aviso .rodape,body.com-aviso .problemas,body.com-aviso .amostra{opacity
 .carregando{position:absolute;inset:0;display:grid;place-items:center;color:#ffffffa0;font-size:14px}
 .vthumb{position:relative;display:block;width:100%;height:100%}.vthumb video{width:100%;height:100%;object-fit:cover;display:block;background:#000}.vthumb i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;color:#fff;font-size:28px;text-shadow:0 2px 10px #000a}.tira .vthumb i{font-size:14px}
 .etq .op{white-space:nowrap}.etq .op.leve{padding:10px 8px}
-.pareceres:empty{display:none}.pareceres{display:grid;gap:6px;margin:-6px 0 14px}.pc{border-left:3px solid #3651B8;background:#E7ECF7;border-radius:0 8px 8px 0;padding:6px 10px}.pc b{font-size:12.5px}.pc .vd{font-size:11.5px;font-weight:700;margin-left:8px;padding:1px 7px;border-radius:5px;background:#fff;color:#3651B8}.pc p{font-size:13px;color:var(--tinta2);line-height:1.4;margin-top:2px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-.slide.c1 .pc p{-webkit-line-clamp:1}
+.pareceres:empty{display:none}.pareceres{display:grid;gap:6px;margin:-6px 0 14px}.pc{border-left:3px solid #3651B8;background:#E7ECF7;border-radius:0 8px 8px 0;padding:6px 10px}.pc b{font-size:12.5px}.pc .vd{font-size:11.5px;font-weight:700;margin-left:8px;padding:1px 7px;border-radius:5px;background:#fff;color:#3651B8}.pc p{font-size:13px;color:var(--tinta2);line-height:1.4;margin-top:2px;white-space:pre-line;overflow-wrap:anywhere}
 @media(max-width:1440px){.etq .pergunta{display:none}.etq .op.leve kbd{display:none}.etq{gap:6px;padding:12px 14px}.etq .op{padding:9px 12px}.etq .op.leve{padding:9px 6px}}
 #gaveta{position:fixed;inset:0;z-index:55;background:#0b0f13cc;display:none;justify-content:flex-end}#gaveta.on{display:flex}
 #gaveta .g{width:min(560px,100%);height:100%;background:var(--azulejo);color:var(--tinta);overflow:auto;padding:22px 24px}
@@ -175,7 +181,7 @@ body.com-aviso .rodape,body.com-aviso .problemas,body.com-aviso .amostra{opacity
 <div class="erro-api" id="erro" role="alert"></div>
 <main class="palco" aria-roledescription="carrossel" aria-label="Pedidos para aprovar"><div class="trilho" id="trilho"></div></main>
 <button class="seta e" id="ant" aria-label="Pedido anterior"></button><button class="seta d" id="prox" aria-label="Próximo pedido"></button>
-<footer class="rodape"><span><kbd>←</kbd><kbd>→</kbd>passar</span><span><kbd>1</kbd><kbd>2</kbd>escolher</span><span><kbd>O</kbd>outra ação</span><span><kbd>E</kbd>editar</span><span><kbd>R</kbd>recusar</span><span><kbd>L</kbd>depois</span><span><kbd>Espaço</kbd>ver o anexo inteiro</span></footer>
+<footer class="rodape"><span><kbd>←</kbd><kbd>→</kbd>passar</span><span><kbd>↑</kbd><kbd>↓</kbd>rolar o texto</span><span><kbd>1</kbd><kbd>2</kbd>escolher</span><span><kbd>O</kbd>outra ação</span><span><kbd>E</kbd>editar</span><span><kbd>R</kbd>recusar</span><span><kbd>L</kbd>depois</span><span><kbd>Espaço</kbd>ver o anexo inteiro</span></footer>
 <p class="problemas" id="problemas"></p>
 <div id="gaveta" role="dialog" aria-modal="true"><div class="g" id="gav"></div></div>
 <div class="aviso" id="aviso" role="status" aria-live="polite"><span id="aviso-t"></span><button id="desfazer">Desfazer</button><i class="barra" aria-hidden="true"></i></div>
@@ -207,7 +213,7 @@ const grupo=p=>p.departamento||p.agente_nome||'';
 function topo(){const D=ITENS.filter(p=>!p.pendencia);const nomes=[...new Set(D.map(grupo))],n=a=>D.filter(p=>grupo(p)===a&&!(pend&&pend.k===chave(p))).length,tot=D.length-(pend?1:0);
  $('#filtros').innerHTML=`<button class="filtro" aria-pressed="${!filtro}" data-f="">Tudo<span class="n">${tot}</span></button>`+nomes.filter(a=>n(a)).map(a=>`<button class="filtro" aria-pressed="${filtro===a}" data-f="${esc(a)}">${esc(a)}<span class="n">${n(a)}</span></button>`).join('');
  $('#filtros').querySelectorAll('.filtro').forEach(b=>b.onclick=()=>{filtro=b.dataset.f||null;atual=0;render()});
- const L=vis();const cf=RES.conferidos_hoje?` · ${RES.conferidos_hoje} conferidos${RES.falhas_hoje?` (${RES.falhas_hoje} não deram certo)`:''}`:'';$('#contagem').innerHTML=(L.length?`<strong>${atual+1} de ${L.length}</strong> esperando você · `:'')+`${RES.decididos_hoje} decididos hoje${cf}`;$('#n-pend').textContent=pends().length;
+ const L=vis();const cf=RES.conferidos_hoje?` · ${RES.conferidos_hoje} conferidos${RES.falhas_hoje?` (${RES.falhas_hoje} não deram certo)`:''}`:'';$('#contagem').innerHTML=(L.length?`<strong>${atual+1} de ${L.length}</strong> esperando você · `:'')+`${RES.decididos_hoje} decididos hoje${cf}`;$('#n-pend').textContent=pends().length;avisaFila(ITENS.filter(p=>!p.k).length-(pend?1:0));
  $('#ant').disabled=atual<=0;$('#prox').disabled=atual>=L.length-1;ajustaTopo()}
 // 12/11: o topo nunca encobre nada. Tenta tudo numa linha; se os filtros ou a contagem ficarem cortados, os filtros descem
 // para uma 2ª linha. O palco acompanha a altura real do topo (--topo).
@@ -231,6 +237,10 @@ function visual(p){const r=RISCO[p.risco]||RISCO.interno;
  ${M.length>1?`<div class="tiras">${M.slice(0,8).map((x,j)=>`<button class="tira" aria-current="${j===i}" aria-label="${esc(x.rotulo)}" data-m="${esc(chave(p))}|${j}">${thumb(x)}</button>`).join('')}${M.length>8?`<button class="tira mais" data-z="${esc(chave(p))}" aria-label="Ver todos os ${M.length} anexos">+${M.length-8}</button>`:''}</div>`:''}</div>`}
 function tinta(h,a){const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=x=>Math.round(x+(255-x)*a);return `rgb(${m(r)},${m(g)},${m(b)})`}
 function corEtq(p){const f=FONTE[(p.entrada||{}).fonte];if(f)return[tinta(f[0],.42),f[0]];const r={producao:'#D9661C',envio_externo:'#7D3C98',dinheiro:'#B3372D',interno:'#3651B8',saude:'#B3372D'}[p.risco]||'#C99A12';return[tinta(r,.42),r]}
+// 12/11: no contexto em blocos ("Você pediu:", "Precisa de você:"…), o rótulo no começo da linha sai em negrito
+const rotulos=s=>esc(s).replace(/(^|\n)([A-ZÀ-Ý][^\n:]{1,28}):(?=\s)/g,'$1<b class="rot">$2:</b>');
+const temFoto=p=>(p.midia||[]).some(m=>(m.tipo||'imagem')==='imagem'||m.tipo==='video');
+const soTexto=p=>p.risco!=='saude'&&!temFoto(p)&&!(p.anexos&&!p._anx&&!p._anxErro);
 function slide(p,i){const e=p.entrada||{},f=FONTE[e.fonte]||['#555','•',e.fonte||'agente'];const ce=corEtq(p);
  if(p.risco==='saude'){const ac=p.acoes||[];return `<section class="slot" data-i="${i}" aria-hidden="${i!==atual}"><article class="slide" data-k="${esc(chave(p))}"><div class="carimbo" aria-hidden="true"></div>${visual(p)}
   <div class="txt"><p class="de"><span class="ico" style="background:#B3372D" aria-hidden="true">!</span>Saúde dos agentes</p><h2>${esc(p.titulo)}</h2><p class="ctx">${esc(p.contexto)}</p></div>
@@ -239,10 +249,10 @@ function slide(p,i){const e=p.entrada||{},f=FONTE[e.fonte]||['#555','•',e.font
   ${ac.includes('rodar')?`<button class="op" data-s="rodar"><kbd>2</kbd><span>Rodar agora<small>O comando do agente</small></span></button>`:''}
   <span class="resto">${ac.includes('investigar')?`<button class="op leve" data-s="investigar">Investigar com Claude</button>`:''}</span></div></article></section>`}
  const pr=p.proposta,al=p.alternativa;
- return `<section class="slot" data-i="${i}" aria-hidden="${i!==atual}"><article class="slide" data-k="${esc(chave(p))}"><div class="carimbo" aria-hidden="true"></div>
+ return `<section class="slot" data-i="${i}" aria-hidden="${i!==atual}"><article class="slide${soTexto(p)?' so-texto':''}" data-k="${esc(chave(p))}"><div class="carimbo" aria-hidden="true"></div>
  ${visual(p)}
  <div class="txt"><p class="de"><span class="ico" style="background:${f[0]}" aria-hidden="true">${esc(f[1])}</span>${p.departamento?`${esc(p.departamento)} · `:''}${esc(p.agente_nome)}, via ${esc(f[2])}<time>${quando(p.criado_em)}</time></p>
- <h2>${esc(p.titulo)}</h2>${p.contexto?`<p class="ctx">${esc(p.contexto)}</p>`:''}${pareceres(p)}
+ <h2>${esc(p.titulo)}</h2>${p.contexto?`<p class="ctx">${rotulos(p.contexto)}</p>`:''}${pareceres(p)}
  <div class="sai"><p class="para"><b>${esc(pr.destino||pr.rotulo)}</b>${p._editado?'<em>Editado por você</em>':''}</p><div class="corpo">${esc(p._texto??pr.previa)}</div></div>
  ${(p.fatos||[]).length?`<div class="fatos">${p.fatos.slice(0,4).map(n=>`<div class="fato"><b>${esc(n[0])}</b><span>${esc(n[1])}</span></div>`).join('')}</div>`:''}
  ${(p.historico||[]).length?`<div class="hist">${p.historico.slice(0,3).map(h=>`<time>${esc(h[0])}</time><span>${esc(h[1])}</span>`).join('')}</div>`:''}</div>
@@ -254,7 +264,10 @@ function slide(p,i){const e=p.entrada||{},f=FONTE[e.fonte]||['#555','•',e.font
 function render(){topo();const L=vis(),t=$('#trilho');
  if(!L.length){t.style.transform='none';t.innerHTML=`<div class="fim"><b>Fila limpa</b>Nada esperando você agora.<br>Os agentes avisam quando chegar algo novo.</div>`;return}
  atual=Math.max(0,Math.min(atual,L.length-1));t.innerHTML=L.map(slide).join('');posiciona(true);liga();cabe();document.fonts&&document.fonts.ready.then(cabe)}
-function cabe(){document.querySelectorAll('.slide').forEach(s=>{const t=s.querySelector('.txt');if(!t)return;s.classList.remove('c1','c2','c3','c4');for(const c of['c1','c2','c3','c4']){if(t.scrollHeight<=t.clientHeight+1)break;s.classList.add(c)}})}
+// 12/11: nada é cortado. Se o texto não cabe, o título encolhe um pouco (c1) e a coluna do texto rola (sombra no pé até o fim).
+function cabe(){document.querySelectorAll('.slide').forEach(s=>{const t=s.querySelector('.txt');if(!t)return;s.classList.remove('c1');
+ if(t.scrollHeight>t.clientHeight+1)s.classList.add('c1');marcaMais(t);if(!t.dataset.rola){t.dataset.rola=1;t.addEventListener('scroll',()=>marcaMais(t),{passive:true})}})}
+function marcaMais(t){t.classList.toggle('mais',t.scrollTop+t.clientHeight<t.scrollHeight-4)}
 function posiciona(sem){const t=$('#trilho'),s=t.querySelector('.slot');if(!s)return;const w=s.offsetWidth;
  if(sem){t.style.transition='none';requestAnimationFrame(()=>t.style.transition='')}
  t.style.transform=`translateX(${(innerWidth-w)/2-atual*w}px)`;t.querySelectorAll('.slot').forEach((x,i)=>{x.setAttribute('aria-hidden',i!==atual);x.inert=i!==atual});topo();const L=vis();buscaAnexos(L[atual]);buscaAnexos(L[atual+1])}
@@ -276,7 +289,7 @@ function outra(p){const s=sl(p),box=s.querySelector('.sai');if(!box)return;if(bo
  const t=box.querySelector('textarea');t.focus();t.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();render()}if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();outra(p)}}}
 const pedindo={},ANX={};
 function aplicaAnx(p){const a=ANX[chave(p)];if(!a||p._anx)return;if(a.erro){p._anxErro=a.erro}else{p.midia=[...(p.midia||[]),...(a.anexos||[])];p._pareceres=a.pareceres||[]}p._anx=1}
-function redesenha(p){const s=sl(p);if(!s)return;const v=s.querySelector('.vis');if(v)v.outerHTML=visual(p);const pc=s.querySelector('.pareceres');if(pc)pc.outerHTML=pareceres(p);liga();cabe()}
+function redesenha(p){const s=sl(p);if(!s)return;s.classList.toggle('so-texto',soTexto(p));const v=s.querySelector('.vis');if(v)v.outerHTML=visual(p);const pc=s.querySelector('.pareceres');if(pc)pc.outerHTML=pareceres(p);liga();cabe()}
 async function buscaAnexos(p){if(!p||!p.anexos)return;if(ANX[chave(p)]){if(!p._anx){aplicaAnx(p);redesenha(p)}return}if(pedindo[chave(p)])return;pedindo[chave(p)]=1;
  try{const j=await api(`/api/anexos/${encodeURIComponent(p.agente)}/${encodeURIComponent(p.id)}`);ANX[chave(p)]=Array.isArray(j.anexos)?j:{anexos:[],pareceres:[]}}
  catch(e){ANX[chave(p)]={erro:e.message}}
@@ -326,6 +339,7 @@ document.addEventListener('keydown',e=>{if(e.target.tagName==='TEXTAREA')return;
  if($('#lb').classList.contains('on')){if(e.key==='Escape'||e.key===' '){e.preventDefault();fechaLB()}const n=lbP.midia.length;if(n>1&&e.key==='ArrowRight'){lbI=(lbI+1)%n;lb()}if(n>1&&e.key==='ArrowLeft'){lbI=(lbI-1+n)%n;lb()}return}
  const p=vis()[atual];if(!p||e.metaKey||e.ctrlKey||e.altKey)return;const k=e.key.toLowerCase();
  if(e.key==='ArrowRight')vai(1);else if(e.key==='ArrowLeft')vai(-1);
+ else if(['ArrowDown','ArrowUp','PageDown','PageUp'].includes(e.key)){const t=sl(p)?.querySelector('.txt');if(t){e.preventDefault();const d=e.key.startsWith('Page')?t.clientHeight*.85:60;t.scrollBy({top:e.key.endsWith('Up')?-d:d,behavior:'smooth'})}}
  else if(p.risco==='saude'){if(k==='1')saude(p,'visto');else if(k==='2'&&(p.acoes||[]).includes('rodar'))saude(p,'rodar')}
  else if(k==='1')escolhe(p,0);else if(k==='2'&&p.alternativa)escolhe(p,1);
  else if(e.key==='A'&&e.shiftKey){lote(p)}else if(k==='o'){e.preventDefault();outra(p)}else if(k==='r')decide(p,'recusar');else if(k==='l')decide(p,'adiar');
@@ -354,5 +368,10 @@ async function carregaQuadros(){for(const el of document.querySelectorAll('[data
  try{const j=await api(`/api/quadros/${encodeURIComponent(ag)}/${encodeURIComponent(id)}/${i}`);QD[k]=j.url}catch(e){QD[k]='erro'}
  document.querySelectorAll(`[data-q="${CSS.escape(k)}"]`).forEach(x=>{x.outerHTML=QD[k]==='erro'?'<span class="qd-wait">Não consegui montar os quadros: use Tocar o vídeo</span>':`<img class="qd-img" src="${esc(QD[k])}" alt="8 quadros do vídeo">`})}}
 setInterval(()=>{if(document.querySelector('[data-q]'))carregaQuadros()},1500);
-carregar();setInterval(()=>{if(!pend&&!document.querySelector('.sai textarea')&&!$('#lb').classList.contains('on')&&!$('#gaveta').classList.contains('on'))carregar()},60000);
+// 12/11: aberto dentro do app, o Vigia conta à janela quantos pedidos esperam (decisões + lembretes, sem os cartões de saúde; o número ao lado de "Aprovação")
+// toda vez que a fila muda, e recarrega quando o app vê na fonte um pedido novo que ele ainda não mostrou.
+let nAvisado=null;function avisaFila(n){if(window.parent===window||n===nAvisado)return;nAvisado=n;try{window.parent.postMessage({vigia:'esperando',n},'*')}catch(e){}}
+const podeRecarregar=()=>!pend&&!document.querySelector('.sai textarea')&&!$('#lb').classList.contains('on')&&!$('#gaveta').classList.contains('on');
+window.addEventListener('message',e=>{if(e.source===window.parent&&e.data&&e.data.vigia==='recarregar'&&podeRecarregar())carregar()});
+carregar();setInterval(()=>{if(podeRecarregar())carregar()},60000);
 </script></body></html>

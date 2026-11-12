@@ -54,12 +54,12 @@
     },
     "titulo": {
       "type": "string",
-      "maxLength": 110,
+      "maxLength": 200,
       "description": "A decisão em uma frase, de preferência em pergunta."
     },
     "contexto": {
       "type": "string",
-      "maxLength": 400
+      "maxLength": 2400
     },
     "risco": {
       "enum": [
@@ -183,7 +183,7 @@
       "properties": {
         "texto": {
           "type": "string",
-          "maxLength": 300
+          "maxLength": 1200
         },
         "confianca": {
           "enum": [
