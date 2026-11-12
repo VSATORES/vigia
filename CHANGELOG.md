@@ -1,5 +1,9 @@
 # Mudanças
 
+## 2.6.1 — 12/11/2026
+- Correção: "Já vi" em slide de saúde que veio de um pedido (ex.: o conferidor avisando que uma execução não deu certo)
+  dava "agente 'undefined' não existe na configuração". Agora fecha o pedido pelo caminho normal (ação "ciente").
+
 ## 2.6.0 — 11/11/2026
 - Aparência da aba Aprovação: `[aparencia]` no vigia.toml escolhe um de 9 temas (cores, fonte, cantos) e um papel de parede (4 prontos ou uma imagem local, servida em /aparencia/papel) com a força do fundo. Sem `[aparencia]`, nada muda.
 

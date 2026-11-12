@@ -197,7 +197,7 @@ function thumb(m,grande){const u=urlOk(m.url);if((m.tipo||'imagem')==='imagem'&&
  if(m.tipo==='video'&&u&&grande)return `<span class="vthumb"><video src="${esc(u)}#t=0.5" muted playsinline preload="metadata" aria-label="${esc(m.rotulo)}"></video><i aria-hidden="true">▶</i></span>`;
  return `<div class="doc-thumb"><div><span aria-hidden="true">${m.tipo==='pdf'?'▤':m.tipo==='video'?'▶':'▦'}</span>${esc(m.rotulo)}</div></div>`}
 function visual(p){const r=RISCO[p.risco]||RISCO.interno;
- if(p.risco==='saude')return `<div class="vis"><div class="semmidia"><div class="grande">${esc(p.ult||'—')}</div><div>Última rodada de <b>${esc(p.agente_nome)}</b></div><a href="/painel#agentes/${esc(p.k)}">Ver no painel dos agentes</a></div></div>`;
+ if(p.risco==='saude')return `<div class="vis"><div class="semmidia"><div class="grande">${esc(p.ult||'—')}</div><div>Última rodada de <b>${esc(p.agente_nome)}</b></div><a href="/painel#agentes/${esc(p.k||p.agente)}">Ver no painel dos agentes</a></div></div>`;
  const M=p.midia||[];if(!M.length&&p.anexos&&!p._anx)return `<div class="vis"><div class="foto" style="cursor:default"><div class="carregando">Buscando as fotos do card…</div></div></div>`;
  if(!M.length&&p._anxErro)return `<div class="vis"><div class="semmidia"><div>Não consegui buscar as fotos: ${esc(p._anxErro)}</div>${urlOk((p.entrada||{}).link)?`<a href="${esc(p.entrada.link)}" target="_blank" rel="noopener">Abrir o card</a>`:''}</div></div>`;
  if(!M.length){const f=FONTE[(p.entrada||{}).fonte]||['#555','•',(p.entrada||{}).fonte||''];const lk=urlOk((p.entrada||{}).link);
@@ -272,7 +272,11 @@ async function envia(){if(!pend)return;const x=pend;clearTimeout(x.t);pend=null;
  try{await api(`/api/pedido/${encodeURIComponent(x.p.agente)}/${encodeURIComponent(x.p.id)}/${x.d}`,{opcao:x.o,texto:x.texto,horas:1});
   ITENS=ITENS.filter(p=>chave(p)!==x.k);RES.decididos_hoje+=x.d==='adiar'?0:1;render()}
  catch(e){erro(`Não registrei "${x.p.titulo}": ${e.message}`);render()}}
-async function saude(p,a){try{await api(`/api/${a}/${encodeURIComponent(p.k)}`,{texto:'pela aba Aprovação'});aviso(a==='visto'?'Anotado: '+p.agente_nome:a==='rodar'?'Rodando '+p.agente_nome:'Investigação pedida',false);if(a==='visto'){ITENS=ITENS.filter(x=>x!==p);render()}}catch(e){erro(e.message)}}
+async function saude(p,a){
+ // Slide de saúde que veio de um PEDIDO (ex.: o conferidor avisando que uma execução não deu certo) não tem p.k:
+ // "Já vi" fecha o pedido pelo caminho normal (ação "ciente", que não executa nada de fora). Antes: "agente 'undefined'".
+ if(!p.k&&p.agente&&p.id){if(a==='visto')decide(p,'aprovar',0);return}
+ try{await api(`/api/${a}/${encodeURIComponent(p.k)}`,{texto:'pela aba Aprovação'});aviso(a==='visto'?'Anotado: '+p.agente_nome:a==='rodar'?'Rodando '+p.agente_nome:'Investigação pedida',false);if(a==='visto'){ITENS=ITENS.filter(x=>x!==p);render()}}catch(e){erro(e.message)}}
 let tAviso;function aviso(t,desf){const a=$('#aviso');$('#aviso-t').textContent=t;$('#desfazer').hidden=!desf;a.classList.add('on');clearTimeout(tAviso);tAviso=setTimeout(()=>a.classList.remove('on'),5000)}
 $('#desfazer').onclick=()=>{if(!pend)return;clearTimeout(pend.t);const k=pend.k;pend=null;render();const i=vis().findIndex(p=>chave(p)===k);if(i>=0){atual=i;posiciona(true)}$('#aviso').classList.remove('on')};
 addEventListener('beforeunload',()=>{if(pend)envia()});
