@@ -153,3 +153,30 @@ class TestConfigExecutores(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestAparencia(unittest.TestCase):
+    def test_sem_aparencia_nao_muda_nada(self):
+        from vigia import aparencia
+        self.assertEqual(aparencia.css({}), "")
+
+    def test_tema_e_papel(self):
+        from vigia import aparencia
+        c = aparencia.css({"aparencia": {"tema": "noturno", "papel": "mar", "forca": 30}})
+        self.assertIn("--etiqueta:#F4C430", c)
+        self.assertIn("rgba(", c)
+        self.assertIn("linear-gradient(180deg", c)
+
+    def test_tema_claro_nao_deixa_palco_branco(self):
+        from vigia import aparencia
+        c = aparencia.css({"aparencia": {"tema": "papel"}})
+        self.assertIn("--noite:#111111", c)
+
+    def test_foto_local(self):
+        import tempfile
+        from vigia import aparencia
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as f:
+            g = {"aparencia": {"papel": f.name, "forca": 20}}
+            self.assertEqual(aparencia.foto(g), f.name)
+            self.assertIn("/aparencia/papel", aparencia.css(g))
+        self.assertIsNone(aparencia.foto({"aparencia": {"papel": "/nao/existe.jpg"}}))

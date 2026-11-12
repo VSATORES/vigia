@@ -1,5 +1,8 @@
 # Mudanças
 
+## 2.6.0 — 11/11/2026
+- Aparência da aba Aprovação: `[aparencia]` no vigia.toml escolhe um de 9 temas (cores, fonte, cantos) e um papel de parede (4 prontos ou uma imagem local, servida em /aparencia/papel) com a força do fundo. Sem `[aparencia]`, nada muda.
+
 ## 2.5.1 — 11/11/2026
 - Vídeo para ao fechar a tela cheia, ao trocar de anexo ou de aba do navegador, e continua de onde parou ("Continuar de onde parou").
 

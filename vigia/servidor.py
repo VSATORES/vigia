@@ -27,7 +27,7 @@ def token(geral):
 
 
 def servir(geral, gerar, caminho_config):
-    from . import acoes, config, estado, pedidos
+    from . import acoes, aparencia, config, estado, pedidos
     import mimetypes
     saida, porta = geral["saida"], geral["porta"]
     tok = token(geral)
@@ -128,9 +128,23 @@ def servir(geral, gerar, caminho_config):
                 self.end_headers()
                 self.wfile.write(corpo)
                 return
+            if rota == "/aparencia/papel":
+                arq = aparencia.foto(geral)
+                if not arq:
+                    self.send_response(404)
+                    self.end_headers()
+                    return
+                corpo = open(arq, "rb").read()
+                self.send_response(200)
+                self.send_header("Content-Type", mimetypes.guess_type(arq)[0] or "image/jpeg")
+                self.send_header("Cache-Control", "private, max-age=3600")
+                self.end_headers()
+                self.wfile.write(corpo)
+                return
             if rota in ("/", "/aprovacao"):
                 html = open(os.path.join(os.path.dirname(__file__), "pagina", "aprovacao.html"), encoding="utf-8").read()
                 html = html.replace("const API=null;", "const API=" + json.dumps({"token": tok}) + ";", 1)
+                html = html.replace("</head>", aparencia.css(geral) + "</head>", 1)
                 corpo = html.encode()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
