@@ -55,6 +55,26 @@ class TestPcDesligado(unittest.TestCase):
         est = json.load(open(os.path.join(self.d, "estado.json")))
         self.assertIn("kpis|2026-11-11|08:30", est["pc_avisado"])
 
+    def test_pausa_e_retomada_nao_reavisam(self):
+        notificar.verificar(self.geral, dados({}))
+        notificar.verificar(self.geral, dados({"0": [["08:30", "pc", "x"]]}))
+        antes = self.enviado()
+        self.assertIn("KPIs diários", antes)
+        pausado = dados({"0": [["08:30", "pc", "x"]]}); pausado["itens"][0]["st"] = "pause"
+        r = notificar.verificar(self.geral, pausado)
+        self.assertEqual(r["pc"], 0)
+        r = notificar.verificar(self.geral, dados({"0": [["08:30", "pc", "x"]]}))  # retomado
+        self.assertEqual(r["pc"], 0)
+        self.assertEqual(antes, self.enviado())
+
+    def test_item_novo_so_memoriza(self):
+        notificar.verificar(self.geral, dados({}))
+        d = dados({}); d["itens"].append({"k": "novo", "nome": "Novo", "st": "ok", "motivo": "", "rodadas": {"1": [["21:30", "pc", "x"]]}})
+        r = notificar.verificar(self.geral, d)
+        self.assertEqual(r["pc"], 0)
+        r = notificar.verificar(self.geral, d)
+        self.assertEqual(r["pc"], 0)
+
     def test_falha_no_envio_tenta_de_novo(self):
         notificar.verificar(self.geral, dados({}))
         self.geral["notificar"]["comando"] = "false {arquivo}"

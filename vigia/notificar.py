@@ -9,7 +9,8 @@ Desligar só nesta execução: variável VIGIA_SEM_AVISO=1.
 
 Computador desligado (12/11): rotina que perdeu o horário porque o PC estava desligado não muda o estado do item
 (fica "pc" no dia), então antes ninguém era avisado. Agora, quando o PC volta, vai UM aviso com o que se perdeu
-(hoje e ontem), uma vez só por horário (estado.json -> "pc_avisado").
+(hoje e ontem), uma vez só por horário (estado.json -> "pc_avisado"). Pode chegar até 2h depois de o PC voltar:
+o horário fica "atrasado" enquanto ainda cabe uma rodada e só então vira "pc".
 """
 import datetime as dt, os, shlex, subprocess, tempfile
 from . import estado
@@ -88,7 +89,11 @@ def verificar(geral, dados):
         evs = [e for e in evs if e[1] == "quebrou"]
     pc_atual = perdidas(dados)
     pc_antes = d.get("pc_avisado")
-    pc_novas = {} if pc_antes is None else {k: v for k, v in pc_atual.items() if k not in set(pc_antes)}
+    anterior = d.get("notificado") or {}
+    # só item que já existia e não estava pausado na geração anterior; item novo ou recém-retomado só memoriza
+    ativos_antes = {k for k, st in anterior.items() if st != "pause"}
+    pc_novas = {} if pc_antes is None else {k: v for k, v in pc_atual.items()
+                                            if k not in set(pc_antes) and k.split("|")[0] in ativos_antes}
     enviado = None
     if (evs or pc_novas) and cfg.get("comando") and os.environ.get("VIGIA_SEM_AVISO") != "1":
         f = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8")
@@ -105,6 +110,8 @@ def verificar(geral, dados):
         if not enviado:
             return {"eventos": len(evs), "pc": len(pc_novas), "enviado": False}  # não memoriza: tenta de novo
     d["notificado"] = atual
-    d["pc_avisado"] = sorted(pc_atual)  # só hoje e ontem: a lista se limpa sozinha
+    ontem = (dt.datetime.fromisoformat(dados["gerado"]).date() - dt.timedelta(days=1)).isoformat()
+    # junta o já avisado com o de agora (pausa ou .toml quebrado por uma geração não faz reavisar); guarda só hoje e ontem
+    d["pc_avisado"] = sorted(k for k in set(pc_antes or []) | set(pc_atual) if k.split("|")[1] >= ontem)
     estado.gravar(geral, d)
     return {"eventos": len(evs), "pc": len(pc_novas), "enviado": enviado}
