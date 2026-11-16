@@ -84,8 +84,9 @@ desde = "2026-11-01 07:00"       # opcional: não cobra rodada antes disso
 duracao_max_min = 90             # rodada que termina depois disso é tratada como "à mão"
 [log]
 arquivos = "/var/log/backup/log-*.txt"
-fim_rodada = 'exit=\d+'          # linha que fecha uma rodada
+fim_rodada = 'exit=\d+'          # linha que fecha uma rodada ('^' vale para cada linha)
 volume = '(\d+) arquivos'        # opcional: número para o gráfico
+postou = '"successful":\s*true'  # opcional (este é o padrão): prova de entrega; com ela, regra sem_novidade não vale ("" desliga)
 [[regras]]                       # a primeira que casar decide (regex)
 se = "disco cheio"
 status = "falhou"                # ok | sem_novidade | falhou | rodando
@@ -93,6 +94,10 @@ motivo = "Disco cheio"
 acao = "Libere espaço; a próxima rodada tenta de novo."
 ```
 Sem regra que case, vale o último `exit=N` (0 = ok).
+
+Cada rodada do arquivo é lida por conta própria: começo pela hora numa das 2 primeiras linhas (saída do `date`, ISO ou só
+`HH:MM[:SS]` no começo da linha, com a data do nome do arquivo); fim pela hora na linha de fim. Sem hora de começo, a rodada
+fica no horário do cron anterior ao fim (até `duracao_max_min`). Hora depois da última gravação do arquivo é ignorada.
 
 ### `jsonl` — rotina que grava uma linha JSON por execução
 ```toml

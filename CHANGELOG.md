@@ -1,5 +1,14 @@
 # Mudanças
 
+## Próxima versão — 16/11/2026
+- **Leitura de log de texto (`log_texto`) corrigida para todas as rotinas:**
+  - toda rodada do arquivo, e não só a primeira, pode ser do cron (e rodada à mão não ocupa o horário de uma do cron), e cada uma tem hora e duração próprias. Antes, num log
+    de um arquivo por dia, as rodadas seguintes saíam "à mão" e sem duração;
+  - `fim_rodada` e regras valem linha a linha: `^` funciona sem `(?m)`;
+  - linha só com `HH:MM[:SS]` ganha a data do nome do arquivo. Hora no futuro, como a validade de um login dentro de uma
+    mensagem, não vira hora de rodada;
+  - regra `sem_novidade` não vale quando a rodada postou (nova opção `[log] postou`, padrão `"successful": true`).
+
 ## 2.8.0 — 12/11/2026
 - **Aviso de Desfazer** mais curto (4 s, era 5 s) e no rodapé, abaixo do slide, numa linha só, com uma barrinha do tempo
   que falta: não cobre mais nenhum botão. As dicas de teclado somem enquanto ele aparece.

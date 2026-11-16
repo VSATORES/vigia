@@ -80,11 +80,14 @@ def item_rotina(a, col, geral, agora, vivos):
     usadas, linhas = set(), []
     for t in esperados:
         achou = None
-        for i, r in enumerate(rodadas):
-            if i in usadas:
-                continue
-            if t - dt.timedelta(minutes=15) <= r["ini"] <= t + jan:
-                achou = i
+        for so_agendada in (True, False):  # rodada à mão só ocupa o horário se não houver uma do cron
+            for i, r in enumerate(rodadas):
+                if i in usadas or (so_agendada and r.get("manual")):
+                    continue
+                if t - dt.timedelta(minutes=15) <= r["ini"] <= t + jan:
+                    achou = i
+                    break
+            if achou is not None:
                 break
         if achou is not None:
             usadas.add(achou)
