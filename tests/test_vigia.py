@@ -68,6 +68,94 @@ class TestLog(unittest.TestCase):
         self.assertEqual(len(r), 1)
         self.assertEqual(r[0]["status"], "ok")
 
+    def escrever(self, nome, txt, mtime):
+        p = os.path.join(self.d, nome)
+        with open(p, "w") as f:
+            f.write(txt)
+        os.utime(p, (mtime.timestamp(),) * 2)
+
+    def test_fim_rodada_com_circunflexo_sem_m(self):
+        # '^' no fim_rodada vale para cada linha, mesmo sem (?m)
+        self.escrever("log-2026-11-16.txt", "07:10:01 robo: início\nfeito\nrobo: rodada encerrada Mon Nov 16 07:10:58 -03 2026\n"
+                      "07:40:01 robo: início\nrobo: rodada encerrada Mon Nov 16 07:40:31 -03 2026\n", T(2026, 11, 16, 7, 40, 31))
+        a = self.agente(_cron=Cron("10,40 7-22 * * *"))
+        a["log"]["fim_rodada"] = r"^robo: rodada encerrada"
+        r = log_texto.coletar(a, {}, T(2026, 11, 16, 8))["rodadas"]
+        self.assertEqual([(x["ini"], x["dur"], x["manual"]) for x in r],
+                         [(T(2026, 11, 16, 7, 10, 1), 57, False), (T(2026, 11, 16, 7, 40, 1), 30, False)])
+
+    def test_rodadas_depois_da_primeira_sao_do_cron_e_tem_duracao(self):
+        linhas = "".join(f"{h:02d}:{m:02d}:01 robo: início\nrobo exit=0 Mon Nov 16 {h:02d}:{m:02d}:09 -03 2026\n"
+                         for h, m in [(7, 10), (7, 40), (8, 42), (9, 10)])
+        linhas += "09:24:58 robo: início (teste)\nrobo exit=0 Mon Nov 16 09:25:30 -03 2026\n"
+        self.escrever("log-2026-11-16.txt", linhas, T(2026, 11, 16, 9, 25, 30))
+        r = log_texto.coletar(self.agente(_cron=Cron("10,40 7-22 * * *")), {}, T(2026, 11, 16, 10))["rodadas"]
+        self.assertEqual([x["manual"] for x in r], [False, False, False, False, True])  # 08:42 = atraso; 09:24 = à mão
+        self.assertEqual(r[2]["ini"], T(2026, 11, 16, 8, 42, 1))
+        self.assertTrue(all(x["dur"] == 8 for x in r[:4]))
+        self.assertEqual(r[4]["dur"], 32)
+
+    def test_linha_so_com_hora_usa_data_do_arquivo(self):
+        self.escrever("ciclo-2026-11-16.txt", "a\nciclo exit=0 07:00\nb\nciclo exit=0 07:05\nc\nciclo exit=1 07:10\n",
+                      T(2026, 11, 16, 7, 10, 2))
+        a = self.agente(_cron=Cron("*/5 7-19 * * 1-5"))
+        a["log"].update(arquivos=os.path.join(self.d, "ciclo-*.txt"), fim_rodada=r"ciclo exit=\d+")
+        r = log_texto.coletar(a, {}, T(2026, 11, 16, 7, 12))["rodadas"]
+        self.assertEqual([(x["ini"].strftime("%H:%M"), x["status"], x["manual"]) for x in r],
+                         [("07:00", "ok", False), ("07:05", "ok", False), ("07:10", "falhou", False)])
+        self.assertTrue(all(x["fim"] is not None and x["dur"] == 0 for x in r))
+
+    def test_data_futura_dentro_da_mensagem_nao_e_hora_da_rodada(self):
+        self.escrever("log-2026-11-16.txt",
+                      '07:00 robo exit=0\n07:15 aviso: {"expira_em":"2026-11-18T16:07:33.767Z"}\n07:15 robo exit=0\n',
+                      T(2026, 11, 16, 7, 15, 1))
+        a = self.agente(_cron=Cron("*/15 7-19 * * *"))
+        a["log"]["fim_rodada"] = r"robo exit=\d+"
+        r = log_texto.coletar(a, {}, T(2026, 11, 16, 8))["rodadas"]
+        self.assertEqual([x["ini"] for x in r], [T(2026, 11, 16, 7, 0), T(2026, 11, 16, 7, 15)])
+        self.assertTrue(all(x["fim"].date() == dt.date(2026, 11, 16) for x in r))
+
+    def test_sem_novidade_nao_vale_quando_postou(self):
+        regras = [{"se": "sem novidade", "status": "sem_novidade", "motivo": "Sem novidade"},
+                  {"se": r"post exit=0", "status": "ok", "motivo": "Postou"}]
+        com_post = 'relatório: 3 chamados sem novidade, 2 resolvidos\nclaude exit=0\n{"successful": true}\npost exit=0'
+        sem_post = "nada a fazer\nclaude exit=0\nsem novidade; nada postado\npost exit=0"
+        self.assertEqual(log_texto.avaliar(com_post, regras, True), ("ok", "Postou"))
+        self.assertEqual(log_texto.avaliar(sem_post, regras, True), ("sem_novidade", "Sem novidade"))
+        self.assertEqual(log_texto.avaliar(com_post, regras, True, postou="")[0], "sem_novidade")  # desligado
+
+    def test_arquivo_com_hora_no_nome_fora_do_cron_e_a_mao(self):
+        self.escrever("log-2026-11-16-11h.txt", "x\nexit=0 Mon Nov 16 11:16:10 -03 2026\n", T(2026, 11, 16, 11, 16, 10))
+        self.escrever("log-2026-11-16-12h.txt", "y\nexit=0 Mon Nov 16 12:03:00 -03 2026\n", T(2026, 11, 16, 12, 3))
+        r = log_texto.coletar(self.agente(_cron=Cron("0 8-18/2 * * *")), {}, T(2026, 11, 16, 13))["rodadas"]
+        self.assertEqual([(x["ini"], x["manual"], x["dur"]) for x in r],
+                         [(T(2026, 11, 16, 11, 16, 10), True, None), (T(2026, 11, 16, 12, 0), False, 180)])
+
+    def test_hora_solta_no_conteudo_nao_vira_fim(self):
+        self.escrever("log-2026-11-16.txt", "Mon Nov 16 15:00:01 -03 2026 inicio\n08:30 card aberto\nexit=0\n", T(2026, 11, 16, 15, 0, 5))
+        r = log_texto.coletar(self.agente(_cron=Cron("0 8,15 * * *")), {}, T(2026, 11, 16, 16))["rodadas"]
+        self.assertEqual((r[0]["ini"], r[0]["manual"]), (T(2026, 11, 16, 15, 0, 1), False))
+
+    def test_na_linha_de_fim_vale_a_ultima_data_pela_posicao(self):
+        self.escrever("log-2026-11-16.txt", "x\nsem pedido novo Mon Nov 16 15:01:00 -03 2026 (ultimo 2026-11-12 10:00:00)\n",
+                      T(2026, 11, 16, 15, 1))
+        a = self.agente(_cron=Cron("0 10,15 * * *"))
+        a["log"]["fim_rodada"] = r"^sem pedido novo"
+        r = log_texto.coletar(a, {}, T(2026, 11, 16, 16))["rodadas"]
+        self.assertEqual(r[0]["fim"], T(2026, 11, 16, 15, 1))  # não a data antiga citada na mesma linha
+        self.assertEqual(r[0]["ini"].date(), dt.date(2026, 11, 16))
+        self.assertFalse(r[0]["manual"])
+
+    def test_arquivo_antigo_mexido_depois_nao_ocupa_horario_de_outro_dia(self):
+        self.escrever("log-2026-11-06.txt", "x\nexit=0 Fri Nov  6 09:01:00 -03 2026\ncopiado\n", T(2026, 11, 13, 15, 28))
+        r = log_texto.coletar(self.agente(duracao_max_min=480), {}, T(2026, 11, 13, 16))["rodadas"]
+        self.assertTrue(all(x["manual"] or x["ini"].date() == dt.date(2026, 11, 6) for x in r))
+
+    def test_so_carimbo_de_inicio_nao_inventa_duracao_zero(self):
+        self.escrever("log-2026-11-16.txt", "2026-11-16 09:00:02 inicio\nfeito\nexit=0\n", T(2026, 11, 16, 9, 0, 40))
+        r = log_texto.coletar(self.agente(), {}, T(2026, 11, 16, 10))["rodadas"]
+        self.assertEqual((r[0]["ini"], r[0]["dur"]), (T(2026, 11, 16, 9, 0, 2), None))
+
     def test_log_sem_fim_antigo_e_falha(self):
         open(os.path.join(self.d, "log-2026-11-08.txt"), "w").write("começou\n")
         os.utime(os.path.join(self.d, "log-2026-11-08.txt"), (T(2026, 11, 8, 9).timestamp(),) * 2)
@@ -119,6 +207,12 @@ class TestModeloRotina(unittest.TestCase):
         agora = T(2026, 11, 10, 9, 30)
         it = self.item([self.rodada(T(2026, 11, 9, 9))], [T(2026, 11, 10, 9, 20)], agora)
         self.assertEqual(it["st"], "late")
+
+    def test_rodada_a_mao_nao_ocupa_horario_da_agendada(self):
+        mao = dict(self.rodada(T(2026, 11, 10, 8, 50)), manual=True, motivo="teste")
+        it = self.item([mao, self.rodada(T(2026, 11, 10, 9, 0, 5))], [], T(2026, 11, 10, 12))
+        hoje = it["rodadas"]["0"]
+        self.assertEqual([(x[0], x[2]) for x in hoje], [("08:50", "teste (rodada à mão)"), ("09:00", "ok")])
 
     def test_fora_do_crontab(self):
         self.g["_crontab"] = "0 8 * * * /outra/coisa.sh\n"
